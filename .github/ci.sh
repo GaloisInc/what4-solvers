@@ -35,14 +35,13 @@ build_z3() {
 }
 
 build_solvers() {
-  build_abc &
-  build_cvc4 &
-  build_yices &
-  build_z3 &
-  wait
-  export PATH="$BIN:$PATH"
-  echo "$BIN" >> "$GITHUB_PATH"
-  is_exe "$BIN" abc && is_exe "$BIN" cvc4 && is_exe "$BIN" yices && is_exe "$BIN" z3
+  build_abc
+  build_cvc4
+  build_yices
+  build_z3
+  #export PATH="$BIN:$PATH"
+  #echo "$BIN" >> "$GITHUB_PATH"
+  #is_exe "$BIN" abc && is_exe "$BIN" cvc4 && is_exe "$BIN" yices && is_exe "$BIN" z3
 }
 
 output() { echo "::set-output name=$1::$2"; }
