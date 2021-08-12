@@ -13,7 +13,16 @@ build_abc() {
   curl -o "abc.zip" -sL "https://github.com/berkeley-abc/abc/archive/$ABC_VERSION.zip"
   if $IS_WIN; then
     7z x -bd abc.zip;
-    (cd abc-$ABC_VERSION && rm -f Makefile && cmake . && make && cp abc$EXT $BIN/abc$EXT)
+    pushd abc-$ABC_VERSION
+    sed -i 's#ABC_USE_PTHREADS"#ABC_DONT_USE_PTHREADS" /D "_XKEYCHECK_H"#g' *.dsp
+    awk 'BEGIN { del=0; } /# Begin Group "uap"/ { del=1; } /# End Group/ { if( del > 0 ) {del=0; next;} } del==0 {print;} ' abclib.dsp > tmp.dsp
+    cp tmp.dsp abclib.dsp
+    rm tmp.dsp
+    unix2dos *.dsp
+    devenv abcspace.dsw /upgrade || dir
+    msbuild abcspace.sln /m /nologo /p:Configuration=Release
+    cp _TEST/abc$EXT $BIN/abc$EXT
+    popd
   else
     unzip abc.zip;
     (cd abc-$ABC_VERSION && make && cp abc$EXT $BIN/abc$EXT)
