@@ -38,8 +38,11 @@ jobs:
 
       - name: Install dependencies (Windows)
         run: |
-          choco install cmake
           choco install gperf
+        if: runner.os == 'Windows'
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
         if: runner.os == 'Windows'
 
       - uses: actions/setup-python@v2
