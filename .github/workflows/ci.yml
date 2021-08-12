@@ -27,14 +27,12 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           sudo apt-get update
-          sudo apt-get install cmake
           sudo apt-get install gperf
         if: runner.os == 'Linux'
 
       - name: Install dependencies (macOS)
         run: |
           brew update
-          brew install cmake
           brew install gperf
         if: runner.os == 'macOS'
 

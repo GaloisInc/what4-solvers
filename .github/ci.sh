@@ -11,8 +11,13 @@ is_exe() { [[ -x "$1/$2$EXT" ]] || command -v "$2" > /dev/null 2>&1; }
 
 build_abc() {
   curl -o "abc.zip" -sL "https://github.com/berkeley-abc/abc/archive/$ABC_VERSION.zip"
-  if $IS_WIN; then 7z x -bd abc.zip; else unzip abc.zip; fi
-  (cd abc-$ABC_VERSION && cmake . && make && cp abc$EXT $BIN/abc$EXT)
+  if $IS_WIN; then
+    7z x -bd abc.zip;
+    (cd abc-$ABC_VERSION && rm -f Makefile && cmake . && make && cp abc$EXT $BIN/abc$EXT)
+  else
+    unzip abc.zip;
+    (cd abc-$ABC_VERSION && make && cp abc$EXT $BIN/abc$EXT)
+  fi
   output path $BIN/abc$EXT
 }
 
