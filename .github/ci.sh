@@ -13,7 +13,7 @@ build_abc() {
   curl -o "abc.zip" -sL "https://github.com/berkeley-abc/abc/archive/$ABC_VERSION.zip"
   if $IS_WIN; then 7z x -bd abc.zip; else unzip abc.zip; fi
   if $IS_WIN; then
-    MAKE_ARGS="CXXFLAGS=-fpermissive OPTFLAGS=-O2 ABC_USE_NO_PTHREADS=1"
+    MAKE_ARGS="CXXFLAGS=-fpermissive OPTFLAGS=-O2 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_READLINE=1"
   else
     MAKE_ARGS="OPTFLAGS=-O2"
   fi
