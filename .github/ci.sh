@@ -12,12 +12,7 @@ is_exe() { [[ -x "$1/$2$EXT" ]] || command -v "$2" > /dev/null 2>&1; }
 build_abc() {
   curl -o "abc.zip" -sL "https://github.com/berkeley-abc/abc/archive/$ABC_VERSION.zip"
   if $IS_WIN; then 7z x -bd abc.zip; else unzip abc.zip; fi
-  if $IS_WIN; then
-    MAKE_ARGS="CXXFLAGS=-fpermissive OPTFLAGS=-O2 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_READLINE=1"
-  else
-    MAKE_ARGS="OPTFLAGS=-O2"
-  fi
-  (cd abc-$ABC_VERSION && make $MAKE_ARGS && cp abc$EXT $BIN/abc$EXT)
+  (cd abc-$ABC_VERSION && cmake . && make && cp abc$EXT $BIN/abc$EXT)
   output path $BIN/abc$EXT
 }
 
