@@ -45,6 +45,12 @@ jobs:
         uses: microsoft/setup-msbuild@v1.0.2
         if: runner.os == 'Windows'
 
+      - name: msbuild info
+        run: |
+          msbuild -version
+          devenv -version
+        if: runner.os == 'Windows'
+
       - uses: actions/setup-python@v2
         with:
           python-version: '3.9'
