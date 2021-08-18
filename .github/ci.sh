@@ -19,7 +19,7 @@ build_abc() {
     cp tmp.dsp abclib.dsp
     rm tmp.dsp
     unix2dos *.dsp
-    devenv abcspace.dsw /upgrade || dir
+    "/c/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/IDE/devenv.exe" abcspace.dsw /upgrade
     msbuild abcspace.sln /m /nologo /p:Configuration=Release
     cp _TEST/abc$EXT $BIN/abc$EXT
     popd
