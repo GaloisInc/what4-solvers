@@ -47,7 +47,9 @@ jobs:
 
       - name: msbuild info
         run: |
+          which msbuild
           msbuild -version
+          VsDevCmd.bat
           devenv -version
         if: runner.os == 'Windows'
 
