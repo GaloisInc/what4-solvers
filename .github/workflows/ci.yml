@@ -47,10 +47,8 @@ jobs:
 
       - name: msbuild info
         run: |
-          which msbuild
           msbuild -version
-          VsDevCmd.bat
-          devenv -version
+          "/c/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/IDE/devenv.exe" -version
         if: runner.os == 'Windows'
 
       - uses: actions/setup-python@v2
