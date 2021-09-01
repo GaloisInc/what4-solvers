@@ -36,6 +36,8 @@ build_cvc4() {
 
 build_yices() {
   LIBPOLY_VERSION="0.1.10"
+  TOP=`pwd`
+
   curl -o libpoly.zip -sL "https://github.com/SRI-CSL/libpoly/archive/refs/tags/v$LIBPOLY_VERSION.zip"
   unzip libpoly.zip
   mkdir install-root
@@ -51,12 +53,13 @@ build_yices() {
   make install
   popd
 
-  git clone https://github.com/ivmai/cudd
-  pushd cudd
-  ./configure CFLAGS=-fPIC --prefix=../install-root
+  curl -o cudd.zip "https://github.com/ivmai/cudd/archive/refs/tags/cudd-3.0.0.zip"
+  unzip cudd.zip
+  pushd cudd-cudd-3.0.0/
+  ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
   make
   make install
-  popod
+  popd
 
   curl -o yices.zip -sL "https://github.com/SRI-CSL/yices2/archive/refs/tags/Yices-$YICES_VERSION.zip"
   unzip yices.zip
