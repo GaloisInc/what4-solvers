@@ -46,6 +46,7 @@ jobs:
             gcc
             gperf
             make
+            python
             unzip
         if: runner.os == 'Windows'
 
