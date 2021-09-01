@@ -53,12 +53,12 @@ jobs:
           packages: |
             toml
 
-      - id: build_solvers (non-Windows)
+      - name: build_solvers (non-Windows)
         shell: bash
         run: .github/ci.sh build_solvers
         if: runner.os != 'Windows'
 
-      - id: build_solvers (Windows)
+      - name: build_solvers (Windows)
         shell: msys2 {0}
         run: .github/ci.sh build_solvers
         if: runner.os == 'Windows'
