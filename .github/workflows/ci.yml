@@ -42,7 +42,9 @@ jobs:
           update: true
           msystem: MSYS
           install: |
+            gcc
             gperf
+            make
             unzip
         if: runner.os == 'Windows'
 
