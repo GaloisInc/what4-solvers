@@ -35,7 +35,16 @@ build_cvc4() {
 build_yices() {
   curl -o yices.zip -sL "https://github.com/SRI-CSL/yices2/archive/refs/tags/Yices-$YICES_VERSION.zip"
   unzip yices.zip
-  (cd yices2-Yices-$YICES_VERSION && autoconf && ./configure && make && cp build/*/bin/* $BIN)
+  pushd yices2-Yices-$YICES_VERSION
+  autoconf
+  if $IS_WIN; then
+    ./configure --host=x86_64-w64-mingw32
+  else
+    ./configure
+  fi
+  make
+  cp build/*/bin/* $BIN
+  popd
   output path $BIN/yices$EXT
   output path $BIN/yices_smt2$EXT
 }
