@@ -44,10 +44,10 @@ jobs:
             autoconf
             cmake
             gcc
+            gmp
             gperf
             m4
             make
-            mingw-w64-gmp
             mingw-w64-x86_64-gcc
             python
             unzip
