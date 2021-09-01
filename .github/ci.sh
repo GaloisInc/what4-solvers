@@ -35,15 +35,27 @@ build_cvc4() {
 }
 
 build_yices() {
+  LIBPOLY_VERSION="0.1.10"
+  curl -o libpoly.zip -sL "https://github.com/SRI-CSL/libpoly/archive/refs/tags/v$LIBPOLY_VERSION.zip"
+  unzip libpoly.zip
+
+  pushd libpoly-$LIBPOLY_VERSION
+  cd build
+  cmake .. -DCMAKE_BUILD_TYPE=Release
+  make
+  make install
+  popd
+
   curl -o yices.zip -sL "https://github.com/SRI-CSL/yices2/archive/refs/tags/Yices-$YICES_VERSION.zip"
   unzip yices.zip
+
   pushd yices2-Yices-$YICES_VERSION
   autoconf
   if $IS_WIN; then
-    ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
+    ./configure --enable-mcsat --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
     cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
   else
-    ./configure
+    ./configure --enable-mcsat
   fi
   make
   cp build/*/bin/* $BIN
@@ -61,8 +73,8 @@ build_z3() {
 
 build_solvers() {
   #build_abc
-  build_cvc4
-  #build_yices
+  #build_cvc4
+  build_yices
   #build_z3
   #export PATH="$BIN:$PATH"
   #echo "$BIN" >> "$GITHUB_PATH"
