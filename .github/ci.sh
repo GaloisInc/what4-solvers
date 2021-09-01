@@ -19,7 +19,17 @@ build_abc() {
 build_cvc4() {
   curl -o cvc4.zip -sL "https://github.com/CVC4/CVC4-archived/archive/refs/tags/$CVC4_VERSION.zip"
   unzip cvc4.zip
-  (cd CVC4-archived-$CVC4_VERSION && ./contrib/get-antlr-3.4 && ./configure.sh production && cd build && make)
+  pushd CVC4-archived-$CVC4_VERSION
+  if $IS_WIN ; then
+    HOST=x86_64-w64-mingw32 ./contrib/get-win-dependencies
+    ./configure --win64 --static production
+  else
+    ./contrib/get-antlr-3.4
+    ./configure.sh production
+  fi
+  cd build
+  make
+  popd
 }
 
 build_yices() {
@@ -38,7 +48,7 @@ build_z3() {
 }
 
 build_solvers() {
-  build_abc
+  #build_abc
   build_cvc4
   build_yices
   build_z3
