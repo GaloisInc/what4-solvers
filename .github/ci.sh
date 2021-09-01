@@ -41,7 +41,11 @@ build_yices() {
 
   pushd libpoly-$LIBPOLY_VERSION
   cd build
-  cmake .. -DCMAKE_BUILD_TYPE=Release
+  if $IS_WIN; then
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off
+  else
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off
+  fi
   make
   make install
   popd
