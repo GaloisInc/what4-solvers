@@ -38,23 +38,33 @@ build_yices() {
   LIBPOLY_VERSION="0.1.10"
   curl -o libpoly.zip -sL "https://github.com/SRI-CSL/libpoly/archive/refs/tags/v$LIBPOLY_VERSION.zip"
   unzip libpoly.zip
+  mkdir install-root
 
   pushd libpoly-$LIBPOLY_VERSION
   cd build
   if $IS_WIN; then
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root
   else
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root
   fi
   make
   make install
   popd
+
+  git clone https://github.com/ivmai/cudd
+  pushd cudd
+  ./configure CFLAGS=-fPIC --prefix=../install-root
+  make
+  make install
+  popod
 
   curl -o yices.zip -sL "https://github.com/SRI-CSL/yices2/archive/refs/tags/Yices-$YICES_VERSION.zip"
   unzip yices.zip
 
   pushd yices2-Yices-$YICES_VERSION
   autoconf
+  export CPPFLAGS="-I../install-root/include"
+  export LDFLAGS="-L../install-root/lib"
   if $IS_WIN; then
     ./configure --enable-mcsat --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
     cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
