@@ -49,7 +49,7 @@ build_z3() {
 
 build_solvers() {
   #build_abc
-  build_cvc4
+  #build_cvc4
   build_yices
   build_z3
   #export PATH="$BIN:$PATH"
