@@ -28,8 +28,10 @@ build_cvc4() {
     ./configure.sh production
   fi
   cd build
+  cp bin/cvc4$EXT $BIN
   make
   popd
+  output path $BIN/cvc4$EXT
 }
 
 build_yices() {
@@ -59,9 +61,9 @@ build_z3() {
 
 build_solvers() {
   #build_abc
-  #build_cvc4
-  build_yices
-  build_z3
+  build_cvc4
+  #build_yices
+  #build_z3
   #export PATH="$BIN:$PATH"
   #echo "$BIN" >> "$GITHUB_PATH"
   #is_exe "$BIN" abc && is_exe "$BIN" cvc4 && is_exe "$BIN" yices && is_exe "$BIN" z3

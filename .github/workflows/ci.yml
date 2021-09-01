@@ -43,10 +43,11 @@ jobs:
           install: |
             autoconf
             cmake
-            mingw-w64-x86_64-gcc
+            gcc
             gperf
             m4
             make
+            mingw-w64-x86_64-gcc
             python
             unzip
         if: runner.os == 'Windows'
