@@ -38,7 +38,7 @@ build_yices() {
   pushd yices2-Yices-$YICES_VERSION
   autoconf
   if $IS_WIN; then
-    ./configure --host=x86_64-w64-mingw32
+    ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
   else
     ./configure
   fi
