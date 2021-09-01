@@ -12,7 +12,7 @@ is_exe() { [[ -x "$1/$2$EXT" ]] || command -v "$2" > /dev/null 2>&1; }
 build_abc() {
   curl -o "abc.zip" -sL "https://github.com/berkeley-abc/abc/archive/$ABC_VERSION.zip"
   unzip abc.zip
-  (cd abc-$ABC_VERSION && make && cp abc$EXT $BIN/abc$EXT)
+  (cd abc-$ABC_VERSION && make ABC_USE_NO_READLINE=1 && cp abc$EXT $BIN/abc$EXT)
   output path $BIN/abc$EXT
 }
 
