@@ -38,6 +38,9 @@ build_yices() {
   LIBPOLY_VERSION="0.1.10"
   TOP=`pwd`
 
+  export CPPFLAGS="-I../install-root/include -I/mingw64/include"
+  export LDFLAGS="-L../install-root/lib -L/mingw64/lib"
+
   curl -o libpoly.zip -sL "https://github.com/SRI-CSL/libpoly/archive/refs/tags/v$LIBPOLY_VERSION.zip"
   unzip libpoly.zip
   mkdir install-root
@@ -53,7 +56,7 @@ build_yices() {
   make install
   popd
 
-  curl -o cudd.zip "https://github.com/ivmai/cudd/archive/refs/tags/cudd-3.0.0.zip"
+  curl -o cudd.zip -sL "https://github.com/ivmai/cudd/archive/refs/tags/cudd-3.0.0.zip"
   unzip cudd.zip
   pushd cudd-cudd-3.0.0/
   ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
@@ -66,8 +69,6 @@ build_yices() {
 
   pushd yices2-Yices-$YICES_VERSION
   autoconf
-  export CPPFLAGS="-I../install-root/include"
-  export LDFLAGS="-L../install-root/lib"
   if $IS_WIN; then
     ./configure --enable-mcsat --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
     cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
