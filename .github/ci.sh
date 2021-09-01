@@ -35,38 +35,42 @@ build_cvc4() {
 }
 
 build_yices() {
-  LIBPOLY_VERSION="0.1.10"
-  TOP=`pwd`
-
-  export CPPFLAGS="-I$TOP/install-root/include"
-  export LDFLAGS="-L$TOP/install-root/lib"
-
-  mkdir install-root
-  mkdir install-root/include
-  mkdir install-root/lib
-
-  curl -o libpoly.zip -sL "https://github.com/SRI-CSL/libpoly/archive/refs/tags/v$LIBPOLY_VERSION.zip"
-  unzip libpoly.zip
-
-  pushd libpoly-$LIBPOLY_VERSION
-  cd build
-  if $IS_WIN; then
-    CPPFLAGS="$CPPFLAGS -I$TOP/libpoly-0.1.0/src" cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a -DHAVE_OPEN_MEMSTREAM=0
+  if "$IS_WIN"; then
+    echo "Skipping libpoly and CUDD on Windows"
   else
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
+    LIBPOLY_VERSION="0.1.10"
+    TOP=`pwd`
+
+    export CPPFLAGS="-I$TOP/install-root/include"
+    export LDFLAGS="-L$TOP/install-root/lib"
+
+    mkdir install-root
+    mkdir install-root/include
+    mkdir install-root/lib
+
+    curl -o libpoly.zip -sL "https://github.com/SRI-CSL/libpoly/archive/refs/tags/v$LIBPOLY_VERSION.zip"
+    unzip libpoly.zip
+
+    pushd libpoly-$LIBPOLY_VERSION
+    cd build
+    if $IS_WIN; then
+      CPPFLAGS="$CPPFLAGS -I$TOP/libpoly-0.1.0/src" cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a -DHAVE_OPEN_MEMSTREAM=0
+    else
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
+    fi
+    make
+    make install
+    popd
+
+    curl -o cudd.zip -sL "https://github.com/ivmai/cudd/archive/refs/tags/cudd-3.0.0.zip"
+    unzip cudd.zip
+
+    pushd cudd-cudd-3.0.0/
+    ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
+    make
+    make install
+    popd
   fi
-  make
-  make install
-  popd
-
-  curl -o cudd.zip -sL "https://github.com/ivmai/cudd/archive/refs/tags/cudd-3.0.0.zip"
-  unzip cudd.zip
-
-  pushd cudd-cudd-3.0.0/
-  ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
-  make
-  make install
-  popd
 
   curl -o yices.zip -sL "https://github.com/SRI-CSL/yices2/archive/refs/tags/Yices-$YICES_VERSION.zip"
   unzip yices.zip
@@ -74,7 +78,7 @@ build_yices() {
   pushd yices2-Yices-$YICES_VERSION
   autoconf
   if $IS_WIN; then
-    ./configure --enable-mcsat --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
+    ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
     cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
   else
     ./configure --enable-mcsat
