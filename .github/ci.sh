@@ -11,20 +11,20 @@ is_exe() { [[ -x "$1/$2$EXT" ]] || command -v "$2" > /dev/null 2>&1; }
 
 build_abc() {
   curl -o "abc.zip" -sL "https://github.com/berkeley-abc/abc/archive/$ABC_VERSION.zip"
-  if $IS_WIN; then 7z x -bd abc.zip; else unzip abc.zip; fi
+  unzip abc.zip
   (cd abc-$ABC_VERSION && make && cp abc$EXT $BIN/abc$EXT)
   output path $BIN/abc$EXT
 }
 
 build_cvc4() {
   curl -o cvc4.zip -sL "https://github.com/CVC4/CVC4-archived/archive/refs/tags/$CVC4_VERSION.zip"
-  if $IS_WIN; then 7z x -bd cvc4.zip; else unzip cvc4.zip; fi
+  unzip cvc4.zip
   (cd CVC4-archived-$CVC4_VERSION && ./contrib/get-antlr-3.4 && ./configure.sh production && cd build && make)
 }
 
 build_yices() {
   curl -o yices.zip -sL "https://github.com/SRI-CSL/yices2/archive/refs/tags/Yices-$YICES_VERSION.zip"
-  if $IS_WIN; then 7z x -bd yices.zip; else unzip yices.zip; fi
+  unzip yices.zip
   (cd yices2-Yices-$YICES_VERSION && autoconf && ./configure && make && cp build/*/bin/* $BIN)
   output path $BIN/yices$EXT
   output path $BIN/yices_smt2$EXT
@@ -32,7 +32,7 @@ build_yices() {
 
 build_z3() {
   curl -o z3.zip -sL "https://github.com/Z3Prover/z3/archive/refs/tags/z3-$Z3_VERSION.zip"
-  if $IS_WIN; then 7z x -bd z3.zip; else unzip z3.zip; fi
+  unzip z3.zip
   (cd z3-z3-$Z3_VERSION && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN/z3$EXT)
   output path $BIN/z3$EXT
 }

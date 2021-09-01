@@ -41,7 +41,9 @@ jobs:
         with:
           update: true
           msystem: MSYS
-          install: gperf
+          install: |
+            gperf
+            unzip
         if: runner.os == 'Windows'
 
       - uses: actions/setup-python@v2
