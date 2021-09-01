@@ -42,7 +42,7 @@ jobs:
           update: true
           install: |
             cmake
-            gcc
+            mingw-w64-x86_64-gcc
             gperf
             m4
             make
