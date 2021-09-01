@@ -38,19 +38,22 @@ build_yices() {
   LIBPOLY_VERSION="0.1.10"
   TOP=`pwd`
 
-  export CPPFLAGS="-I../install-root/include -I/mingw64/include"
-  export LDFLAGS="-L../install-root/lib -L/mingw64/lib"
+  export CPPFLAGS="-I../install-root/include"
+  export LDFLAGS="-L../install-root/lib"
+
+  mkdir install-root
+  mkdir install-root/include
+  mkdir install-root/lib
 
   curl -o libpoly.zip -sL "https://github.com/SRI-CSL/libpoly/archive/refs/tags/v$LIBPOLY_VERSION.zip"
   unzip libpoly.zip
-  mkdir install-root
 
   pushd libpoly-$LIBPOLY_VERSION
   cd build
   if $IS_WIN; then
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a
   else
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
   fi
   make
   make install
@@ -58,6 +61,7 @@ build_yices() {
 
   curl -o cudd.zip -sL "https://github.com/ivmai/cudd/archive/refs/tags/cudd-3.0.0.zip"
   unzip cudd.zip
+
   pushd cudd-cudd-3.0.0/
   ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
   make
