@@ -41,6 +41,7 @@ jobs:
         with:
           update: true
           install: |
+            autoconf
             cmake
             mingw-w64-x86_64-gcc
             gperf
