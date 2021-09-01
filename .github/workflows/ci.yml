@@ -37,18 +37,11 @@ jobs:
         if: runner.os == 'macOS'
 
       - name: Install dependencies (Windows)
-        run: |
-          choco install gperf
-        if: runner.os == 'Windows'
-
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
-        if: runner.os == 'Windows'
-
-      - name: msbuild info
-        run: |
-          msbuild -version
-          & "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.exe" -version
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MSYS
+          install: gperf
         if: runner.os == 'Windows'
 
       - uses: actions/setup-python@v2
@@ -60,9 +53,15 @@ jobs:
           packages: |
             toml
 
-      - id: build_solvers
+      - id: build_solvers (non-Windows)
         shell: bash
         run: .github/ci.sh build_solvers
+        if: runner.os != 'Windows'
+
+      - id: build_solvers (Windows)
+        shell: msys2 {0}
+        run: .github/ci.sh build_solvers
+        if: runner.os == 'Windows'
 
   # Indicates sufficient CI success for the purposes of mergify merging the pull
   # request, see .github/mergify.yml. This is done instead of enumerating each
