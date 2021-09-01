@@ -42,6 +42,7 @@ jobs:
           update: true
           msystem: MSYS
           install: |
+            cmake
             gcc
             gperf
             make
