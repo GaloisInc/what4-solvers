@@ -24,8 +24,7 @@ build_cvc4() {
   pushd repos/CVC4-archived
   if $IS_WIN ; then
     echo "Downloading pre-built CVC4 binary for Windows"
-    file="win64-opt.exe"
-    curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/$version/cvc4-1.8-$file"
+    curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/1.8/cvc4-1.8-win64-opt.exe"
   else
     ./contrib/get-antlr-3.4
     ./configure.sh production
