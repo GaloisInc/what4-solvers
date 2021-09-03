@@ -21,14 +21,14 @@ build_cvc4() {
   unzip cvc4.zip
   pushd CVC4-archived-$CVC4_VERSION
   if $IS_WIN ; then
-    HOST=x86_64-w64-mingw32 ./contrib/get-win-dependencies
+    HOST=x86_64-pc-mingw32 ./contrib/get-win-dependencies
     ./configure --win64 --static production
   else
     ./contrib/get-antlr-3.4
     ./configure.sh production
   fi
   cd build
-  make
+  make || cat bootstap.log
   cp bin/cvc4$EXT $BIN
   popd
   output path $BIN/cvc4$EXT
