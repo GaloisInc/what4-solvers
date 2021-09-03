@@ -77,6 +77,11 @@ jobs:
         run: .github/ci.sh build_solvers
         if: runner.os == 'Windows'
 
+      - uses: actions/upload-artifact@v2
+        with:
+          path: bin
+          name: ${{ runner.os }}-bin
+
   # Indicates sufficient CI success for the purposes of mergify merging the pull
   # request, see .github/mergify.yml. This is done instead of enumerating each
   # instance of each job in the mergify configuration for a number of reasons:
