@@ -11,7 +11,7 @@ is_exe() { [[ -x "$1/$2$EXT" ]] || command -v "$2" > /dev/null 2>&1; }
 
 build_abc() {
   pushd repos/abc
-  checkout $ABC_TAG
+  git checkout $ABC_TAG
   if $IS_WIN ; then
     make ABC_USE_NO_READLINE=1 CXXFLAGS=-fpermissive
   else
