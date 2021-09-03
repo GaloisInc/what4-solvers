@@ -37,7 +37,10 @@ build_cvc4() {
 
 build_yices() {
   if "$IS_WIN"; then
-    echo "Skipping libpoly and CUDD on Windows"
+    echo "Downloading pre-built Yices binary for Windows"
+    curl -o yices.zip -sL "https://yices.csl.sri.com/releases/2.6.2/yices-2.6.2-x86_64-pc-mingw32-static-gmp.zip"
+    unzip yices.zip
+    cp yices-*/bin/* $BIN
   else
     TOP=`pwd`
 
@@ -64,19 +67,19 @@ build_yices() {
     make
     make install
     popd
-  fi
 
-  pushd repos/yices2
-  autoconf
-  if $IS_WIN; then
-    ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
-    cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
-  else
-    ./configure --enable-mcsat
+    pushd repos/yices2
+    autoconf
+    if $IS_WIN; then # Currently unreachable, but leaving in for when it's relevant again
+      ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
+      cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
+    else
+      ./configure --enable-mcsat
+    fi
+    make
+    cp build/*/bin/* $BIN
+    popd
   fi
-  make
-  cp build/*/bin/* $BIN
-  popd
 }
 
 build_z3() {
