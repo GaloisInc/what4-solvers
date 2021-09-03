@@ -9,10 +9,12 @@ on:
 env:
   CACHE_VERSION: 1
 
-  Z3_VERSION: "4.8.12"
-  CVC4_VERSION: "1.8"
-  YICES_VERSION: "2.6.2"
-  ABC_VERSION: "99ab99bfa6d1c2cc11d59af16aa26b273f611674"
+  ABC_TAG: "99ab99bfa6d1c2cc11d59af16aa26b273f611674"
+  CUDD_TAG: "cudd-3.0.0"
+  CVC4_TAG: "1.8"
+  LIBPOLY_TAG: "v0.1.10"
+  YICES_TAG: "Yices-2.6.2"
+  Z3_TAG: "z3-4.8.10"
 
 jobs:
   build:
@@ -23,6 +25,8 @@ jobs:
         os: [ubuntu-20.04, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: true
 
       - name: Install dependencies (Ubuntu)
         run: |

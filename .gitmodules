@@ -1,0 +1,18 @@
+[submodule "repos/abc"]
+	path = repos/abc
+	url = https://github.com/berkeley-abc/abc
+[submodule "repos/CVC4-archived"]
+	path = repos/CVC4-archived
+	url = https://github.com/CVC4/CVC4-archived
+[submodule "deps/libpoly"]
+	path = repos/libpoly
+	url = https://github.com/SRI-CSL/libpoly
+[submodule "repos/cudd"]
+	path = repos/cudd
+	url = https://github.com/ivmai/cudd
+[submodule "repos/yices2"]
+	path = repos/yices2
+	url = https://github.com/SRI-CSL/yices2
+[submodule "repos/z3"]
+	path = repos/z3
+	url = https://github.com/Z3Prover/z3

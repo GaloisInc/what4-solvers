@@ -10,26 +10,24 @@ mkdir -p "$BIN"
 is_exe() { [[ -x "$1/$2$EXT" ]] || command -v "$2" > /dev/null 2>&1; }
 
 build_abc() {
-  curl -o "abc.zip" -sL "https://github.com/berkeley-abc/abc/archive/$ABC_VERSION.zip"
-  unzip abc.zip
-  (cd abc-$ABC_VERSION && make ABC_USE_NO_READLINE=1 && cp abc$EXT $BIN/abc$EXT)
+  (cd repos/abc && git checkout $ABC_TAG && make ABC_USE_NO_READLINE=1 && cp abc$EXT $BIN/abc$EXT)
   output path $BIN/abc$EXT
 }
 
 build_cvc4() {
-  curl -o cvc4.zip -sL "https://github.com/CVC4/CVC4-archived/archive/refs/tags/$CVC4_VERSION.zip"
-  unzip cvc4.zip
-  pushd CVC4-archived-$CVC4_VERSION
+  pushd repos/CVC4-archived
+  git checkout $CVC4_TAG
   if $IS_WIN ; then
-    HOST=x86_64-w64-mingw32 ./contrib/get-win-dependencies
-    ./configure --win64 --static production
+    echo "Downloading pre-build CVC4 binary for Windows"
+    file="win64-opt.exe"
+    curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/$version/cvc4-$CVC4_TAG-$file"
   else
     ./contrib/get-antlr-3.4
     ./configure.sh production
+    cd build
+    make
+    cp bin/cvc4$EXT $BIN
   fi
-  cd build
-  make
-  cp bin/cvc4$EXT $BIN
   popd
   output path $BIN/cvc4$EXT
 }
@@ -38,7 +36,6 @@ build_yices() {
   if "$IS_WIN"; then
     echo "Skipping libpoly and CUDD on Windows"
   else
-    LIBPOLY_VERSION="0.1.10"
     TOP=`pwd`
 
     export CPPFLAGS="-I$TOP/install-root/include"
@@ -48,13 +45,11 @@ build_yices() {
     mkdir install-root/include
     mkdir install-root/lib
 
-    curl -o libpoly.zip -sL "https://github.com/SRI-CSL/libpoly/archive/refs/tags/v$LIBPOLY_VERSION.zip"
-    unzip libpoly.zip
-
-    pushd libpoly-$LIBPOLY_VERSION
+    pushd repos/libpoly
+    git checkout $LIBPOLY_TAG
     cd build
     if $IS_WIN; then
-      CPPFLAGS="$CPPFLAGS -I$TOP/libpoly-0.1.0/src" cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a -DHAVE_OPEN_MEMSTREAM=0
+      CPPFLAGS="$CPPFLAGS -I$TOP/repos/libpoly/src" cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a -DHAVE_OPEN_MEMSTREAM=0
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
@@ -62,20 +57,16 @@ build_yices() {
     make install
     popd
 
-    curl -o cudd.zip -sL "https://github.com/ivmai/cudd/archive/refs/tags/cudd-3.0.0.zip"
-    unzip cudd.zip
-
-    pushd cudd-cudd-3.0.0/
+    pushd repos/cudd
+    git checkout $CUDD_TAG
     ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
     make
     make install
     popd
   fi
 
-  curl -o yices.zip -sL "https://github.com/SRI-CSL/yices2/archive/refs/tags/Yices-$YICES_VERSION.zip"
-  unzip yices.zip
-
-  pushd yices2-Yices-$YICES_VERSION
+  pushd repos/yices2
+  git checkout $YICES_TAG
   autoconf
   if $IS_WIN; then
     ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
@@ -91,17 +82,16 @@ build_yices() {
 }
 
 build_z3() {
-  curl -o z3.zip -sL "https://github.com/Z3Prover/z3/archive/refs/tags/z3-$Z3_VERSION.zip"
-  unzip z3.zip
-  (cd z3-z3-$Z3_VERSION && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN/z3$EXT)
+  (cd repos/z3 && git checkout $Z3_TAG && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN/z3$EXT)
   output path $BIN/z3$EXT
 }
 
 build_solvers() {
-  #build_abc
+  build_abc
   build_cvc4
-  #build_yices
-  #build_z3
+  build_yices
+  build_z3
+  $IS_WIN || chmod +x $BIN/*
   #export PATH="$BIN:$PATH"
   #echo "$BIN" >> "$GITHUB_PATH"
   #is_exe "$BIN" abc && is_exe "$BIN" cvc4 && is_exe "$BIN" yices && is_exe "$BIN" z3
