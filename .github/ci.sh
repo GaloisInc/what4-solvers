@@ -11,6 +11,8 @@ build_abc() {
   pushd repos/abc
   git checkout $ABC_TAG
   if $IS_WIN ; then
+    sed -i.bak -e 's/-ldl//' Makefile
+    sed -i.bak2 -e 's/-lrt//' Makefile
     make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 CXXFLAGS=-fpermissive
   else
     make
