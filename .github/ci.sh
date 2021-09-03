@@ -10,7 +10,15 @@ mkdir -p "$BIN"
 is_exe() { [[ -x "$1/$2$EXT" ]] || command -v "$2" > /dev/null 2>&1; }
 
 build_abc() {
-  (cd repos/abc && git checkout $ABC_TAG && make ABC_USE_NO_READLINE=1 && cp abc$EXT $BIN/abc$EXT)
+  pushd repos/abc
+  checkout $ABC_TAG
+  if $IS_WIN ; then
+    make ABC_USE_NO_READLINE=1 CXXFLAGS=-fpermissive
+  else
+    make
+  fi
+  cp abc$EXT $BIN/abc$EXT
+  popd
   output path $BIN/abc$EXT
 }
 
