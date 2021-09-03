@@ -7,8 +7,6 @@ EXT=""
 $IS_WIN && EXT=".exe"
 mkdir -p "$BIN"
 
-is_exe() { [[ -x "$1/$2$EXT" ]] || command -v "$2" > /dev/null 2>&1; }
-
 build_abc() {
   pushd repos/abc
   git checkout $ABC_TAG
@@ -19,7 +17,6 @@ build_abc() {
   fi
   cp abc$EXT $BIN/abc$EXT
   popd
-  output path $BIN/abc$EXT
 }
 
 build_cvc4() {
@@ -37,7 +34,6 @@ build_cvc4() {
     cp bin/cvc4$EXT $BIN
   fi
   popd
-  output path $BIN/cvc4$EXT
 }
 
 build_yices() {
@@ -85,13 +81,10 @@ build_yices() {
   make
   cp build/*/bin/* $BIN
   popd
-  output path $BIN/yices$EXT
-  output path $BIN/yices_smt2$EXT
 }
 
 build_z3() {
   (cd repos/z3 && git checkout $Z3_TAG && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN/z3$EXT)
-  output path $BIN/z3$EXT
 }
 
 build_solvers() {
@@ -100,17 +93,6 @@ build_solvers() {
   build_yices
   build_z3
   $IS_WIN || chmod +x $BIN/*
-  #export PATH="$BIN:$PATH"
-  #echo "$BIN" >> "$GITHUB_PATH"
-  #is_exe "$BIN" abc && is_exe "$BIN" cvc4 && is_exe "$BIN" yices && is_exe "$BIN" z3
-}
-
-output() { echo "::set-output name=$1::$2"; }
-set_files() { output changed-files "$(files_since "$1" "$2")"; }
-files_since() {
-  changed_since="$(git log -1 --before="@{$2}")"
-  files="${changed_since:+"$(git diff-tree --no-commit-id --name-only -r "$1" | xargs)"}"
-  echo "$files"
 }
 
 COMMAND="$1"
