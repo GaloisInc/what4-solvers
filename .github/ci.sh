@@ -18,7 +18,7 @@ build_cvc4() {
   pushd repos/CVC4-archived
   git checkout $CVC4_TAG
   if $IS_WIN ; then
-    echo "Downloading pre-build CVC4 binary for Windows"
+    echo "Downloading pre-built CVC4 binary for Windows"
     file="win64-opt.exe"
     curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/$version/cvc4-$CVC4_TAG-$file"
   else
