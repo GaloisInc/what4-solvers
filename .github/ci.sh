@@ -9,7 +9,6 @@ mkdir -p "$BIN"
 
 build_abc() {
   pushd repos/abc
-  git checkout $ABC_TAG
   if $IS_WIN ; then
     sed -i.bak -e 's/-ldl//' Makefile
     sed -i.bak2 -e 's/-lrt//' Makefile
@@ -23,7 +22,6 @@ build_abc() {
 
 build_cvc4() {
   pushd repos/CVC4-archived
-  git checkout $CVC4_TAG
   if $IS_WIN ; then
     echo "Downloading pre-built CVC4 binary for Windows"
     file="win64-opt.exe"
@@ -52,7 +50,6 @@ build_yices() {
     mkdir install-root/lib
 
     pushd repos/libpoly
-    git checkout $LIBPOLY_TAG
     cd build
     if $IS_WIN; then
       CPPFLAGS="$CPPFLAGS -I$TOP/repos/libpoly/src" cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a -DHAVE_OPEN_MEMSTREAM=0
@@ -64,7 +61,6 @@ build_yices() {
     popd
 
     pushd repos/cudd
-    git checkout $CUDD_TAG
     ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
     make
     make install
@@ -72,7 +68,6 @@ build_yices() {
   fi
 
   pushd repos/yices2
-  git checkout $YICES_TAG
   autoconf
   if $IS_WIN; then
     ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
@@ -86,12 +81,12 @@ build_yices() {
 }
 
 build_z3() {
-  (cd repos/z3 && git checkout $Z3_TAG && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN/z3$EXT)
+  (cd repos/z3 && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN/z3$EXT)
 }
 
 build_solvers() {
   #build_abc
-  #build_cvc4
+  build_cvc4
   build_yices
   build_z3
   $IS_WIN || chmod +x $BIN/*
