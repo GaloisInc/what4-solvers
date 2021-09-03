@@ -48,6 +48,7 @@ jobs:
           install: |
             autoconf
             cmake
+            git
             gperf
             m4
             make
