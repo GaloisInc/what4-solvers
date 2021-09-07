@@ -63,7 +63,9 @@ build_yices() {
     popd
 
     pushd repos/cudd
-    autoconf
+    if [[ "$RUNNER_OS" == 'Linux' ]] ; then
+      autoreconf
+    fi
     ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
     make
     make install
