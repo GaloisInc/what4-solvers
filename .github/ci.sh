@@ -13,7 +13,7 @@ build_abc() {
   if $IS_WIN ; then
     sed -i.bak -e 's/-ldl//' Makefile
     sed -i.bak2 -e 's/-lrt//' Makefile
-    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64"
+    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64"
   else
     make
   fi
