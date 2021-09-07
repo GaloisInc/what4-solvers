@@ -90,7 +90,7 @@ build_z3() {
 }
 
 build_solvers() {
-  #build_abc
+  build_abc
   build_yices
   build_cvc4
   build_z3
