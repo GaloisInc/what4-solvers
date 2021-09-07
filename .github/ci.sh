@@ -37,7 +37,7 @@ build_cvc4() {
 }
 
 build_yices() {
-  if false; then # "$IS_WIN"; then
+  if "$IS_WIN"; then
     echo "Downloading pre-built Yices binary for Windows"
     curl -o yices.zip -sL "https://yices.csl.sri.com/releases/2.6.2/yices-2.6.2-x86_64-pc-mingw32-static-gmp.zip"
     unzip yices.zip
@@ -50,6 +50,7 @@ build_yices() {
     mkdir install-root/include
     mkdir install-root/lib
 
+    # This is failing on Windows due to failing to find 'utils/open_memstream.h'
     pushd repos/libpoly
     cd build
     if $IS_WIN; then
