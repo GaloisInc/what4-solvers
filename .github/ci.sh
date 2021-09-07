@@ -63,7 +63,7 @@ build_yices() {
     popd
 
     pushd repos/cudd
-    autoreconf
+    autoconf
     ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
     make
     make install
