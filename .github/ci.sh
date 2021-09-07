@@ -2,7 +2,8 @@
 set -Eeuxo pipefail
 
 [[ "$RUNNER_OS" == 'Windows' ]] && IS_WIN=true || IS_WIN=false
-BIN=$(pwd)/bin
+TOP=$(pwd)
+BIN=$TOP/bin
 EXT=""
 $IS_WIN && EXT=".exe"
 mkdir -p "$BIN"
@@ -36,14 +37,12 @@ build_cvc4() {
 }
 
 build_yices() {
-  if "$IS_WIN"; then
+  if false; then # "$IS_WIN"; then
     echo "Downloading pre-built Yices binary for Windows"
     curl -o yices.zip -sL "https://yices.csl.sri.com/releases/2.6.2/yices-2.6.2-x86_64-pc-mingw32-static-gmp.zip"
     unzip yices.zip
     cp yices-*/bin/* $BIN
   else
-    TOP=`pwd`
-
     export CPPFLAGS="-I$TOP/install-root/include"
     export LDFLAGS="-L$TOP/install-root/lib"
 
@@ -91,8 +90,8 @@ build_z3() {
 
 build_solvers() {
   #build_abc
-  build_cvc4
   build_yices
+  build_cvc4
   build_z3
   $IS_WIN || chmod +x $BIN/*
 }
