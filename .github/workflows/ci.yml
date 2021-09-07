@@ -9,55 +9,71 @@ on:
 env:
   CACHE_VERSION: 1
 
-  Z3_VERSION: "4.8.12"
-  CVC4_VERSION: "1.8"
-  YICES_VERSION: "2.6.2"
-  ABC_VERSION: "99ab99bfa6d1c2cc11d59af16aa26b273f611674"
-
 jobs:
-  config:
-    runs-on: ubuntu-latest
-    outputs:
-      name: ${{ steps.config.outputs.name }}
-      version: ${{ steps.config.outputs.version }}
-      event-tag: ${{ steps.config.outputs.tag }}
-      event-schedule: ${{ steps.config.outputs.schedule }}
-      publish: ${{ steps.config.outputs.publish }}
-      release: ${{ steps.config.outputs.release }}
-      retention-days: ${{ steps.config.outputs.retention-days }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: config
-        id: config
-        env:
-          EVENT_TAG: ${{ startsWith(github.event.ref, 'refs/tags/') }}
-          EVENT_SCHEDULE: ${{ github.event_name == 'schedule' }}
-          EVENT_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
-          RELEASE: ${{ startsWith(github.event.ref, 'refs/heads/release-') }}
-        run: |
-          set -x
-          .github/ci.sh output name saw-$(.github/ci.sh ver)
-          .github/ci.sh output version $(.github/ci.sh ver)
-          .github/ci.sh output tag $EVENT_TAG
-          .github/ci.sh output schedule $EVENT_SCHEDULE
-          .github/ci.sh output publish $({ $EVENT_TAG || $EVENT_SCHEDULE; } && echo true || echo false)
-          .github/ci.sh output release $([[ "refs/heads/release-$(.github/ci.sh ver)" == "${{ github.event.ref }}" ]] && echo true || echo false)
-          .github/ci.sh output retention-days $($RELEASE && echo 90 || echo 5)
-
   build:
     runs-on: ${{ matrix.os }}
-    needs: [config]
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, macos-latest, windows-latest]
     steps:
-      - id: build_solvers
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Install dependencies (Ubuntu)
+        run: |
+          sudo apt-get update
+          sudo apt-get install gperf automake autoconf
+        if: runner.os == 'Linux'
+
+      - name: Install dependencies (macOS)
+        run: |
+          brew update
+          brew install gperf
+        if: runner.os == 'macOS'
+
+      - name: Install dependencies (Windows)
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: |
+            autoconf
+            cmake
+            git
+            gperf
+            m4
+            make
+            mingw-w64-x86_64-gmp
+            mingw-w64-x86_64-gcc
+            python
+            unzip
+        if: runner.os == 'Windows'
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - uses: BSFishy/pip-action@v1
+        with:
+          packages: |
+            toml
+
+      - name: build_solvers (non-Windows)
         shell: bash
         run: .github/ci.sh build_solvers
+        if: runner.os != 'Windows'
+
+      - name: build_solvers (Windows)
+        shell: msys2 {0}
+        run: .github/ci.sh build_solvers
+        if: runner.os == 'Windows'
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: bin
+          name: ${{ runner.os }}-bin
 
   # Indicates sufficient CI success for the purposes of mergify merging the pull
   # request, see .github/mergify.yml. This is done instead of enumerating each
