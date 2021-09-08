@@ -38,9 +38,11 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
+          msystem: MSYS
           install: |
             autoconf
             cmake
+            gcc
             git
             gperf
             m4

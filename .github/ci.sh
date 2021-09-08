@@ -13,11 +13,12 @@ build_abc() {
   if $IS_WIN ; then
     sed -i.bak -e 's/-ldl//' Makefile
     sed -i.bak2 -e 's/-lrt//' Makefile
-    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 CXXFLAGS=-fpermissive
+    echo "double Cudd_CountMinterm( DdManager * manager, DdNode * node, int nvars ) { return 0.0; }" >> src/base/abci/abc.c
+    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64" -j4 abc
   else
-    make
+    make -j4 abc
   fi
-  cp abc$EXT $BIN/abc$EXT
+  cp abc$EXT $BIN
   popd
 }
 
@@ -26,11 +27,12 @@ build_cvc4() {
   if $IS_WIN ; then
     echo "Downloading pre-built CVC4 binary for Windows"
     curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/1.8/cvc4-1.8-win64-opt.exe"
+    cp cvc4$EXT $BIN
   else
     ./contrib/get-antlr-3.4
-    ./configure.sh production
+    ./configure.sh --static --no-static-binary production
     cd build
-    make
+    make -j4
     cp bin/cvc4$EXT $BIN
   fi
   popd
@@ -58,7 +60,7 @@ build_yices() {
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
-    make
+    make -j4
     make install
     popd
 
@@ -67,7 +69,7 @@ build_yices() {
       autoreconf
     fi
     ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
-    make
+    make -j4
     make install
     popd
 
@@ -79,18 +81,18 @@ build_yices() {
     else
       ./configure --enable-mcsat
     fi
-    make
+    make -j4
     cp build/*/bin/* $BIN
     popd
   fi
 }
 
 build_z3() {
-  (cd repos/z3 && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN/z3$EXT)
+  (cd repos/z3 && python scripts/mk_make.py && cd build && make -j4 && cp z3$EXT $BIN)
 }
 
 build_solvers() {
-  #build_abc
+  build_abc
   build_yices
   build_cvc4
   build_z3
