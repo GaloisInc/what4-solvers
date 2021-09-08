@@ -13,12 +13,12 @@ build_abc() {
   if $IS_WIN ; then
     sed -i.bak -e 's/-ldl//' Makefile
     sed -i.bak2 -e 's/-lrt//' Makefile
-    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64"
     echo "double Cudd_CountMinterm( DdManager * manager, DdNode * node, int nvars ) { return 0.0; }" >> src/base/abci/abc.c
+    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64" abc
   else
-    make
+    make abc
   fi
-  cp abc$EXT $BIN/abc$EXT
+  cp abc$EXT $BIN
   popd
 }
 
@@ -87,7 +87,7 @@ build_yices() {
 }
 
 build_z3() {
-  (cd repos/z3 && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN/z3$EXT)
+  (cd repos/z3 && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN)
 }
 
 build_solvers() {
