@@ -29,7 +29,7 @@ build_cvc4() {
     curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/1.8/cvc4-1.8-win64-opt.exe"
   else
     ./contrib/get-antlr-3.4
-    ./configure.sh production
+    ./configure.sh --static-binary production
     cd build
     make
     cp bin/cvc4$EXT $BIN
