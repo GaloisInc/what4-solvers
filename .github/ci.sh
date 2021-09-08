@@ -14,9 +14,9 @@ build_abc() {
     sed -i.bak -e 's/-ldl//' Makefile
     sed -i.bak2 -e 's/-lrt//' Makefile
     echo "double Cudd_CountMinterm( DdManager * manager, DdNode * node, int nvars ) { return 0.0; }" >> src/base/abci/abc.c
-    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64" abc
+    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64" -j4 abc
   else
-    make abc
+    make -j4 abc
   fi
   cp abc$EXT $BIN
   popd
@@ -31,7 +31,7 @@ build_cvc4() {
     ./contrib/get-antlr-3.4
     ./configure.sh --static-binary production
     cd build
-    make
+    make -j4
     cp bin/cvc4$EXT $BIN
   fi
   popd
@@ -59,7 +59,7 @@ build_yices() {
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
-    make
+    make -j4
     make install
     popd
 
@@ -68,7 +68,7 @@ build_yices() {
       autoreconf
     fi
     ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
-    make
+    make -j4
     make install
     popd
 
@@ -80,14 +80,14 @@ build_yices() {
     else
       ./configure --enable-mcsat
     fi
-    make
+    make -j4
     cp build/*/bin/* $BIN
     popd
   fi
 }
 
 build_z3() {
-  (cd repos/z3 && python scripts/mk_make.py && cd build && make && cp z3$EXT $BIN)
+  (cd repos/z3 && python scripts/mk_make.py && cd build && make -j4 && cp z3$EXT $BIN)
 }
 
 build_solvers() {
