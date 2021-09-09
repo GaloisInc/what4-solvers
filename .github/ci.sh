@@ -85,7 +85,7 @@ build_yices() {
     case "$RUNNER_OS" in
       Linux) autoreconf ;;
       macOS) autoconf ;;
-      Windows) autoreconf ;;
+      Windows) autoconf ;;
     esac
     ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
     make -j4
