@@ -100,6 +100,7 @@ build_solvers() {
   build_cvc4
   build_z3
   $IS_WIN || chmod +x $BIN/*
+  strip $BIN/*
 }
 
 COMMAND="$1"
