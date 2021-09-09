@@ -6,10 +6,10 @@
 #
 # 
 set(CMAKE_SYSTEM_NAME Windows)
-set(CMAKE_AR /usr/bin/x86_64-w64-mingw32-ar.exe)
-set(CMAKE_RANLIB /usr/bin/x86_64-w64-mingw32-ranlib.exe)
-set(CMAKE_C_COMPILER /usr/bin/x86_64-w64-mingw32-gcc.exe)
-set(CMAKE_CXX_COMPILER /usr/bin/x86_64-w64-mingw32-g++.exe)
+set(CMAKE_AR /mingw64/bin/x86_64-w64-mingw32-ar.exe)
+set(CMAKE_RANLIB /mingw64/bin/x86_64-w64-mingw32-ranlib.exe)
+set(CMAKE_C_COMPILER /mingw64/bin/x86_64-w64-mingw32-gcc.exe)
+set(CMAKE_CXX_COMPILER /mingw64/bin/x86_64-w64-mingw32-g++.exe)
 set(CMAKE_FIND_ROOT_PATH /mingw64)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
