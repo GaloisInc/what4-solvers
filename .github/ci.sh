@@ -71,6 +71,8 @@ build_yices() {
     pushd repos/libpoly
     cd build
     if $IS_WIN; then
+      sed -i.bak -e 's/enable_testing()//' ../CMakeLists.txt
+      sed -i.bak -e 's/add_subdirectory(test\/polyxx)//' ../CMakeLists.txt
       cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../../../scripts/libpoly-mingw64.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/usr/include -DGMP_LIBRARY=/usr/lib/libgmp.dll.a -DHAVE_OPEN_MEMSTREAM=0
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
