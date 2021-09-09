@@ -44,6 +44,8 @@ jobs:
             cmake
             gcc
             git
+            gmp
+            gmp-devel
             gperf
             m4
             make
