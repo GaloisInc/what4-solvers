@@ -50,7 +50,7 @@ build_cvc4() {
 }
 
 build_yices() {
-  if "$IS_WIN"; then
+  if false ; then # "$IS_WIN"; then
     echo "Downloading pre-built Yices binary for Windows"
     curl -o yices.zip -sL "https://yices.csl.sri.com/releases/2.6.2/yices-2.6.2-x86_64-pc-mingw32-static-gmp.zip"
     unzip yices.zip
@@ -59,7 +59,8 @@ build_yices() {
     mv $BIN/yices-smt.exe $BIN/yices_smt.exe
     mv $BIN/yices-smt2.exe $BIN/yices_smt2.exe
   else
-    export CPPFLAGS="-I$TOP/install-root/include"
+    export CFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src"
+    export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src"
     export LDFLAGS="-L$TOP/install-root/lib"
 
     mkdir install-root
@@ -70,7 +71,7 @@ build_yices() {
     pushd repos/libpoly
     cd build
     if $IS_WIN; then
-      CPPFLAGS="$CPPFLAGS -I$TOP/repos/libpoly/src" cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a -DHAVE_OPEN_MEMSTREAM=0
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../cmake/x86_64-w64-mingw32.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a -DHAVE_OPEN_MEMSTREAM=0
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
@@ -109,10 +110,10 @@ build_z3() {
 }
 
 build_solvers() {
-  build_abc
+  #build_abc
   build_yices
-  build_cvc4
-  build_z3
+  #build_cvc4
+  #build_z3
   $IS_WIN || chmod +x $BIN/*
   strip $BIN/*
 }
