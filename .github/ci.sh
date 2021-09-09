@@ -82,9 +82,11 @@ build_yices() {
     popd
 
     pushd repos/cudd
-    if [[ "$RUNNER_OS" == 'Linux' ]] ; then
-      autoreconf
-    fi
+    case "$RUNNER_OS" in
+      Linux) autoreconf ;;
+      macOS) autoconf ;;
+      Windows) autoreconf ;;
+    esac
     ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
     make -j4
     make install
