@@ -41,6 +41,7 @@ jobs:
           msystem: MSYS
           install: |
             autoconf
+            automake
             cmake
             gcc
             git
