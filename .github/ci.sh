@@ -58,7 +58,7 @@ build_yices() {
   else
     export CFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
     export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
-    export LDFLAGS="-L$TOP/install-root/lib"
+    export LDFLAGS="-L$TOP/install-root/lib -lstdc++"
 
     mkdir install-root
     mkdir install-root/include
