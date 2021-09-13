@@ -96,7 +96,6 @@ build_yices() {
     autoconf
     if $IS_WIN; then # Currently unreachable, but leaving in for when it's relevant again
       ./configure
-      cp ../../scripts/yices-msys.cmake configs/make.include.x86_64-pc-msys
     else
       ./configure --enable-mcsat
     fi
