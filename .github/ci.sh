@@ -96,6 +96,7 @@ build_yices() {
     autoconf
     if $IS_WIN; then # Currently unreachable, but leaving in for when it's relevant again
       ./configure
+      dos2unix src/frontend/smt2/smt2_tokens.txt
     else
       ./configure --enable-mcsat
     fi

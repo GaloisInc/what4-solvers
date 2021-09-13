@@ -43,6 +43,7 @@ jobs:
             autoconf
             automake
             cmake
+            dos2unix
             gcc
             git
             gmp
