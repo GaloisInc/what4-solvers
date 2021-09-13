@@ -97,6 +97,9 @@ build_yices() {
     if $IS_WIN; then # Currently unreachable, but leaving in for when it's relevant again
       ./configure
       dos2unix src/frontend/smt2/smt2_tokens.txt
+      dos2unix src/frontend/smt2/smt2_keywords.txt
+      dos2unix src/frontend/smt2/smt2_symbols.txt
+      dos2unix src/frontend/smt1/smt_keywords.txt
     else
       ./configure --enable-mcsat
     fi
