@@ -64,7 +64,17 @@ build_yices() {
     mkdir install-root/include
     mkdir install-root/lib
 
-    # This is failing on Windows due to failing to find 'utils/open_memstream.h'
+    pushd repos/cudd
+    case "$RUNNER_OS" in
+      Linux) autoreconf ;;
+      macOS) autoconf ;;
+      Windows) autoconf ;;
+    esac
+    ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
+    make -j4
+    make install
+    popd
+
     pushd repos/libpoly
     cd build
     if $IS_WIN; then
@@ -74,17 +84,6 @@ build_yices() {
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
-    make -j4
-    make install
-    popd
-
-    pushd repos/cudd
-    case "$RUNNER_OS" in
-      Linux) autoreconf ;;
-      macOS) autoconf ;;
-      Windows) autoconf ;;
-    esac
-    ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
     make -j4
     make install
     popd
