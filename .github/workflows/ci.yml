@@ -78,10 +78,7 @@ jobs:
             automake
             cmake
             dos2unix
-            gcc
             git
-            gmp
-            gmp-devel
             gperf
             m4
             make
