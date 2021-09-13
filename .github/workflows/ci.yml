@@ -10,6 +10,38 @@ env:
   CACHE_VERSION: 1
 
 jobs:
+  abc:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Install dependencies (Windows)
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MSYS
+          install: |
+            gcc
+            make
+        if: runner.os == 'Windows'
+
+      - name: build_solvers (non-Windows)
+        shell: bash
+        run: .github/ci.sh build_abc
+        if: runner.os != 'Windows'
+
+      - name: build_solvers (Windows)
+        shell: msys2 {0}
+        run: .github/ci.sh build_abc
+        if: runner.os == 'Windows'
+
   build:
     runs-on: ${{ matrix.os }}
     strategy:
