@@ -56,8 +56,8 @@ build_yices() {
     unzip yices.zip
     cp yices-*/bin/* $BIN
   else
-    export CFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src"
-    export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src"
+    export CFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
+    export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
     export LDFLAGS="-L$TOP/install-root/lib"
 
     mkdir install-root
@@ -70,7 +70,7 @@ build_yices() {
     if $IS_WIN; then
       sed -i.bak -e 's/enable_testing()//' ../CMakeLists.txt
       sed -i.bak -e 's/add_subdirectory(test\/polyxx)//' ../CMakeLists.txt
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../../../scripts/libpoly-msys.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/usr/include -DGMP_LIBRARY=/usr/lib/libgmp.dll.a -DHAVE_OPEN_MEMSTREAM=0
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$TOP/scripts/libpoly-msys.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root -DGMP_INCLUDE_DIR=/mingw64/include -DGMP_LIBRARY=/mingw64/lib/libgmp.a -DHAVE_OPEN_MEMSTREAM=0
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
