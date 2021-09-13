@@ -55,9 +55,6 @@ build_yices() {
     curl -o yices.zip -sL "https://yices.csl.sri.com/releases/2.6.2/yices-2.6.2-x86_64-pc-mingw32-static-gmp.zip"
     unzip yices.zip
     cp yices-*/bin/* $BIN
-    mv $BIN/yices-sat.exe $BIN/yices_sat.exe
-    mv $BIN/yices-smt.exe $BIN/yices_smt.exe
-    mv $BIN/yices-smt2.exe $BIN/yices_smt2.exe
   else
     export CFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src"
     export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src"
