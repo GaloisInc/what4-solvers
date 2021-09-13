@@ -73,7 +73,7 @@ build_yices() {
     if $IS_WIN; then
       sed -i.bak -e 's/enable_testing()//' ../CMakeLists.txt
       sed -i.bak -e 's/add_subdirectory(test\/polyxx)//' ../CMakeLists.txt
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../../../scripts/libpoly-mingw64.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/usr/include -DGMP_LIBRARY=/usr/lib/libgmp.dll.a -DHAVE_OPEN_MEMSTREAM=0
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=../../../scripts/libpoly-msys.cmake -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=../install-root -DGMP_INCLUDE_DIR=/usr/include -DGMP_LIBRARY=/usr/lib/libgmp.dll.a -DHAVE_OPEN_MEMSTREAM=0
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
@@ -95,8 +95,8 @@ build_yices() {
     pushd repos/yices2
     autoconf
     if $IS_WIN; then # Currently unreachable, but leaving in for when it's relevant again
-      ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32
-      cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
+      ./configure
+      cp ../../scripts/yices-msys.cmake configs/make.include.x86_64-pc-msys
     else
       ./configure --enable-mcsat
     fi
