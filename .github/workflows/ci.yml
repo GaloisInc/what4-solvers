@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -31,7 +31,7 @@ jobs:
       - name: Install dependencies (macOS)
         run: |
           brew update
-          brew install gperf
+          brew install gperf automake autoconf
         if: runner.os == 'macOS'
 
       - name: Install dependencies (Windows)
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           path: bin
-          name: ${{ runner.os }}-bin
+          name: ${{ matrix.os }}-bin
 
   # Indicates sufficient CI success for the purposes of mergify merging the pull
   # request, see .github/mergify.yml. This is done instead of enumerating each
@@ -84,7 +84,7 @@ jobs:
   # - changes to jobs or job instances don't require a mergify config update
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs:
       - build
     steps:
