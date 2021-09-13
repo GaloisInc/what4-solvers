@@ -100,6 +100,7 @@ build_yices() {
       dos2unix src/frontend/smt2/smt2_keywords.txt
       dos2unix src/frontend/smt2/smt2_symbols.txt
       dos2unix src/frontend/smt1/smt_keywords.txt
+      dos2unix src/frontend/yices/yices_keywords.txt
     else
       ./configure --enable-mcsat
     fi
