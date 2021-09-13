@@ -7,7 +7,7 @@ SET(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
 SET(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
 
 # here is the target environment located
-SET(CMAKE_FIND_ROOT_PATH /mingw64)
+SET(CMAKE_FIND_ROOT_PATH /d/a/_temp/msys/msys64/mingw64)
 
 # adjust the default behaviour of the FIND_XXX() commands:
 # search headers and libraries in the target environment, search
