@@ -80,7 +80,8 @@ build_yices() {
     if $IS_WIN; then
       sed -i.bak -e 's/enable_testing()//' ../CMakeLists.txt
       sed -i.bak -e 's/add_subdirectory(test\/polyxx)//' ../CMakeLists.txt
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root  -DCMAKE_TOOLCHAIN_FILE=$TOP/scripts/libpoly-msys.cmake -DHAVE_OPEN_MEMSTREAM=0
+      export LDFLAGS="$LDFLAGS -lstdc++ -lstdc++fs"
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root -DHAVE_OPEN_MEMSTREAM=0
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
