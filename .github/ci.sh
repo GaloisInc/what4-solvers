@@ -67,7 +67,7 @@ build_yices() {
     (cd repos && curl -o gmp.tar.lz -sL "https://gmplib.org/download/gmp/gmp-6.2.1.tar.lz" && tar xf gmp.tar.lz)
 
     pushd repos/gmp-6.2.1
-    ./configure --build=x86_64-w64-mingw32 --prefix=$TOP/install-root
+    ./configure --prefix=$TOP/install-root # --build=x86_64-w64-mingw32
     make -j4
     make install
     popd
