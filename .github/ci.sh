@@ -64,6 +64,14 @@ build_yices() {
     mkdir install-root/include
     mkdir install-root/lib
 
+    (cd repos && curl -o gmp.tar.lz -sL "https://gmplib.org/download/gmp/gmp-6.2.1.tar.lz" && tar xf gmp.tar.lz)
+
+    pushd repos/gmp-6.2.1
+    ./configure --build=x86_64-w64-mingw32 --prefix=$TOP/install-root
+    make -j4
+    make install
+    popd
+
     pushd repos/cudd
     case "$RUNNER_OS" in
       Linux) autoreconf ;;
@@ -80,8 +88,7 @@ build_yices() {
     if $IS_WIN; then
       sed -i.bak -e 's/enable_testing()//' ../CMakeLists.txt
       sed -i.bak -e 's/add_subdirectory(test\/polyxx)//' ../CMakeLists.txt
-      export LDFLAGS="$LDFLAGS -lstdc++ -lstdc++fs"
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root -DHAVE_OPEN_MEMSTREAM=0
+      cmake .. -DCMAKE_TOOLCHAIN_FILE=$TOP/scripts/x86_64-w64-mingw32.cmake -DCMAKE_INSTALL_PREFIX=$TOP/install-root -DGMP_INCLUDE_DIR=$TOP/install-root/include -DGMP_LIBRARY=$TOP/install-root/lib/libgmp.a -DLIBPOLY_BUILD_PYTHON_API=Off
     else
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
