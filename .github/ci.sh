@@ -56,9 +56,18 @@ build_yices() {
     unzip yices.zip
     cp yices-*/bin/* $BIN
   else
+    if $IS_WIN ; then
+      export CC=x86_64-w64-mingw32-gcc
+      export CXX=x86_64-w64-mingw32-g++
+    fi
     export CFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
     export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
     export LDFLAGS="-L$TOP/install-root/lib"
+    if $IS_WIN ; then
+      export CONFIGURE_FLAGS="--build=x86_64-w64-mingw32 --prefix=$TOP/install-root"
+    else
+      export CONFIGURE_FLAGS="--prefix=$TOP/install-root"
+    fi
 
     mkdir install-root
     mkdir install-root/include
@@ -67,7 +76,7 @@ build_yices() {
     (cd repos && curl -o gmp.tar.lz -sL "https://gmplib.org/download/gmp/gmp-6.2.1.tar.lz" && tar xf gmp.tar.lz)
 
     pushd repos/gmp-6.2.1
-    ./configure --prefix=$TOP/install-root # --build=x86_64-w64-mingw32
+    ./configure $CONFIGURE_FLAGS
     make -j4
     make install
     popd
@@ -78,7 +87,7 @@ build_yices() {
       macOS) autoconf ;;
       Windows) autoconf ;;
     esac
-    ./configure CFLAGS=-fPIC --prefix=$TOP/install-root
+    ./configure CFLAGS=-fPIC $CONFIGURE_FLAGS
     make -j4
     make install
     popd
@@ -98,7 +107,7 @@ build_yices() {
 
     pushd repos/yices2
     autoconf
-    if $IS_WIN; then # Currently unreachable, but leaving in for when it's relevant again
+    if $IS_WIN; then
       ./configure
       dos2unix src/frontend/smt2/smt2_tokens.txt
       dos2unix src/frontend/smt2/smt2_keywords.txt
