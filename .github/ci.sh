@@ -11,9 +11,9 @@ mkdir -p "$BIN"
 
 deps() {
     case "$RUNNER_OS" in
-      Linux) ldd $1 ;;
-      macOS) otool -L $1 ;;
-      Windows) ldd $1 ;;
+      Linux) ldd $1 || true ;;
+      macOS) otool -L $1 || true ;;
+      Windows) ldd $1 || true ;;
     esac
 }
 
