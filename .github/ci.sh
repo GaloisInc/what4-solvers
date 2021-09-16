@@ -98,7 +98,7 @@ build_yices() {
     make -j4 static-bin
     cp build/*/static_bin/* $BIN
     if [ -e $BIN/yices_smt2$EXT ] ; then cp $BIN/yices_smt2$EXT $BIN/yices-smt2$EXT ; else true ; fi
-    (cd $BIN && ./yices-stm2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT $PROBLEM)
+    (cd $BIN && ./yices-smt2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT $PROBLEM)
     popd
   fi
 }
