@@ -28,7 +28,7 @@ build_abc() {
     make -j4 abc
   fi
   cp abc$EXT $BIN
-  (cd $BIN && ./abc$EXT -h && deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < $PROBLEM)
+  (cd $BIN && deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < $PROBLEM)
   popd
 }
 
