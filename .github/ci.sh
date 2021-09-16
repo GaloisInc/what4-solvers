@@ -5,8 +5,17 @@ set -Eeuxo pipefail
 TOP=$(pwd)
 BIN=$TOP/bin
 EXT=""
+PROBLEM=$TOP/problems/mult_dist.smt2
 $IS_WIN && EXT=".exe"
 mkdir -p "$BIN"
+
+deps() {
+    case "$RUNNER_OS" in
+      Linux) ldd $1 ;;
+      macOS) otool -L $1 ;;
+      Windows) ldd $1 ;;
+    esac
+}
 
 build_abc() {
   pushd repos/abc
@@ -19,6 +28,7 @@ build_abc() {
     make -j4 abc
   fi
   cp abc$EXT $BIN
+  (cd $BIN && ./abc$EXT -h && deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < $PROBLEM)
   popd
 }
 
@@ -34,6 +44,7 @@ build_cvc4() {
     cd build
     make -j4
     cp bin/cvc4$EXT $BIN
+    (cd $BIN && ./cvc4$EXT --version && deps cvc4$EXT && ./cvc4$EXT $PROBLEM)
   fi
   popd
 }
@@ -84,14 +95,16 @@ build_yices() {
     else
       ./configure --enable-mcsat
     fi
-    make -j4
-    cp build/*/bin/* $BIN
+    make -j4 static-bin
+    cp build/*/static_bin/* $BIN
+    (cd $BIN && ./yices$EXT --version && deps yices$EXT && ./yices$EXT $PROBLEM)
     popd
   fi
 }
 
 build_z3() {
   (cd repos/z3 && python scripts/mk_make.py && cd build && make -j4 && cp z3$EXT $BIN)
+  (cd $BIN && ./z3$EXT --version && deps z3$EXT && ./z3$EXT $PROBLEM)
 }
 
 build_solvers() {
