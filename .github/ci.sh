@@ -108,13 +108,13 @@ build_yices() {
     pushd repos/yices2
     autoconf
     if $IS_WIN; then
-      ./configure
+      ./configure $CONFIGURE_FLAGS
       dos2unix src/frontend/smt2/smt2_tokens.txt
       dos2unix src/frontend/smt2/smt2_keywords.txt
       dos2unix src/frontend/smt2/smt2_symbols.txt
       dos2unix src/frontend/smt1/smt_keywords.txt
       dos2unix src/frontend/yices/yices_keywords.txt
-      make -j4 OPTION=mingw64 static-bin
+      make -j4 static-bin
     else
       ./configure --enable-mcsat
       make -j4 static-bin
