@@ -80,6 +80,7 @@ jobs:
             dos2unix
             git
             gperf
+            lzip
             m4
             make
             mingw-w64-x86_64-gcc
