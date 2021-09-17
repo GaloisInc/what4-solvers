@@ -10,13 +10,13 @@ env:
   CACHE_VERSION: 1
 
 jobs:
-  abc:
+  build_simple:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        #os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
-        os: [windows-2019]
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
+        solver: [abc]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -33,23 +33,28 @@ jobs:
             make
         if: runner.os == 'Windows'
 
-      - name: build_solvers (non-Windows)
+      - name: build_solver (non-Windows)
         shell: bash
-        run: .github/ci.sh build_abc
+        run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os != 'Windows'
 
-      - name: build_solvers (Windows)
+      - name: build_solver (Windows)
         shell: msys2 {0}
-        run: .github/ci.sh build_abc
+        run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os == 'Windows'
 
-  build:
+      - uses: actions/upload-artifact@v2
+        with:
+          path: bin
+          name: ${{ matrix.os }}-${{ matrix.solver }}-bin
+
+  build_complex:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        #os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
-        os: [windows-2019]
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
+        solver: [cvc4, yices, z3]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -97,16 +102,49 @@ jobs:
           packages: |
             toml
 
-      - name: build_solvers (non-Windows)
+      - name: build_solver (non-Windows)
         shell: bash
-        run: .github/ci.sh build_solvers
+        run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os != 'Windows'
 
-      - name: build_solvers (Windows)
+      - name: build_solver (Windows)
         shell: msys2 {0}
-        run: .github/ci.sh build_solvers
+        run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os == 'Windows'
 
+      - uses: actions/upload-artifact@v2
+        with:
+          path: bin
+          name: ${{ matrix.os }}-${{ matrix.solver }}-bin
+
+  package_solvers:
+    runs-on: ${{ matrix.os }}
+    needs: [build_simple, build_complex]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+     - uses: actions/download-artifact@v2
+        with:
+          name: "${{ runner.os }}-abc-bin"
+          path: bin
+     - uses: actions/download-artifact@v2
+        with:
+          name: "${{ runner.os }}-cvc4-bin"
+          path: bin
+     - uses: actions/download-artifact@v2
+        with:
+          name: "${{ runner.os }}-yices-bin"
+          path: bin
+     - uses: actions/download-artifact@v2
+        with:
+          name: "${{ runner.os }}-z3-bin"
+          path: bin
       - uses: actions/upload-artifact@v2
         with:
           path: bin

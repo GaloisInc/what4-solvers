@@ -30,6 +30,7 @@ build_abc() {
   cp abc$EXT $BIN
   (cd $BIN && deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < $PROBLEM)
   popd
+  cleanup_bins
 }
 
 build_cvc4() {
@@ -47,6 +48,7 @@ build_cvc4() {
     (cd $BIN && ./cvc4$EXT --version && deps cvc4$EXT && ./cvc4$EXT $PROBLEM)
   fi
   popd
+  cleanup_bins
 }
 
 build_yices() {
@@ -119,18 +121,16 @@ build_yices() {
   if [ -e $BIN/yices_smt2$EXT ] ; then cp $BIN/yices_smt2$EXT $BIN/yices-smt2$EXT ; else true ; fi
   (cd $BIN && ./yices-smt2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT $PROBLEM)
   popd
+  cleanup_bins
 }
 
 build_z3() {
   (cd repos/z3 && python scripts/mk_make.py && cd build && make -j4 && cp z3$EXT $BIN)
   (cd $BIN && ./z3$EXT --version && deps z3$EXT && ./z3$EXT $PROBLEM)
+  cleanup_bins
 }
 
-build_solvers() {
-  #build_abc
-  build_yices
-  build_cvc4
-  build_z3
+cleanup_bins() {
   $IS_WIN || chmod +x $BIN/*
   strip $BIN/*
 }
