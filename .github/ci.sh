@@ -23,7 +23,7 @@ build_abc() {
     sed -i.bak -e 's/-ldl//' Makefile
     sed -i.bak2 -e 's/-lrt//' Makefile
     echo "double Cudd_CountMinterm( DdManager * manager, DdNode * node, int nvars ) { return 0.0; }" >> src/base/abci/abc.c
-    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64" -j4 abc
+    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64" LDFLAGS="-static" -j4 abc
   else
     make -j4 abc
   fi
@@ -39,6 +39,7 @@ build_cvc4() {
     echo "Downloading pre-built CVC4 binary for Windows"
     curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/1.8/cvc4-1.8-win64-opt.exe"
     cp cvc4$EXT $BIN
+    deps cvc4$EXT
   else
     ./contrib/get-antlr-3.4
     ./configure.sh --static --no-static-binary production
@@ -125,7 +126,13 @@ build_yices() {
 }
 
 build_z3() {
-  (cd repos/z3 && python scripts/mk_make.py && cd build && make -j4 && cp z3$EXT $BIN)
+  pushd repos/z3
+  if $IS_WIN ; then
+    sed -i.bak -e 's/STATIC_BIN=False/STATIC_BIN=True/' scripts/mk_util.py
+  fi
+  python scripts/mk_make.py
+  (cd build && make -j4 && cp z3$EXT $BIN)
+  popd
   (cd $BIN && ./z3$EXT --version && deps z3$EXT && ./z3$EXT $PROBLEM)
   cleanup_bins
 }
