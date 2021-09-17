@@ -159,7 +159,6 @@ jobs:
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
     runs-on: ubuntu-20.04
-    needs:
-      - build
+    needs: [build_simple, build_complex]
     steps:
       - run: "true"
