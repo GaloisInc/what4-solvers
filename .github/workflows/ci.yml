@@ -128,22 +128,22 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: "${{ runner.os }}-abc-bin"
+          name: "${{ matrix.os }}-abc-bin"
           path: bin
 
       - uses: actions/download-artifact@v2
         with:
-          name: "${{ runner.os }}-cvc4-bin"
+          name: "${{ matrix.os }}-cvc4-bin"
           path: bin
 
       - uses: actions/download-artifact@v2
         with:
-          name: "${{ runner.os }}-yices-bin"
+          name: "${{ matrix.os }}-yices-bin"
           path: bin
 
       - uses: actions/download-artifact@v2
         with:
-          name: "${{ runner.os }}-z3-bin"
+          name: "${{ matrix.os }}-z3-bin"
           path: bin
 
       - uses: actions/upload-artifact@v2
