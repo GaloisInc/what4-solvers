@@ -10,12 +10,51 @@ env:
   CACHE_VERSION: 1
 
 jobs:
-  build:
+  build_simple:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
+        solver: [abc]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Install dependencies (Windows)
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MSYS
+          install: |
+            gcc
+            make
+        if: runner.os == 'Windows'
+
+      - name: build_solver (non-Windows)
+        shell: bash
+        run: .github/ci.sh build_${{ matrix.solver }}
+        if: runner.os != 'Windows'
+
+      - name: build_solver (Windows)
+        shell: msys2 {0}
+        run: .github/ci.sh build_${{ matrix.solver }}
+        if: runner.os == 'Windows'
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: bin
+          name: ${{ matrix.os }}-${{ matrix.solver }}-bin
+
+  build_complex:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
+        solver: [cvc4, yices, z3]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -25,7 +64,7 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           sudo apt-get update
-          sudo apt-get install gperf automake autoconf
+          sudo apt-get install gperf automake autoconf lzip
         if: runner.os == 'Linux'
 
       - name: Install dependencies (macOS)
@@ -38,16 +77,17 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
-          msystem: MSYS
+          msystem: MINGW64
           install: |
             autoconf
+            automake
             cmake
-            gcc
+            dos2unix
             git
             gperf
+            lzip
             m4
             make
-            mingw-w64-x86_64-gmp
             mingw-w64-x86_64-gcc
             python
             unzip
@@ -62,15 +102,49 @@ jobs:
           packages: |
             toml
 
-      - name: build_solvers (non-Windows)
+      - name: build_solver (non-Windows)
         shell: bash
-        run: .github/ci.sh build_solvers
+        run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os != 'Windows'
 
-      - name: build_solvers (Windows)
+      - name: build_solver (Windows)
         shell: msys2 {0}
-        run: .github/ci.sh build_solvers
+        run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os == 'Windows'
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: bin
+          name: ${{ matrix.os }}-${{ matrix.solver }}-bin
+
+  package_solvers:
+    runs-on: ${{ matrix.os }}
+    needs: [build_simple, build_complex]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
+    steps:
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "${{ matrix.os }}-abc-bin"
+          path: bin
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "${{ matrix.os }}-cvc4-bin"
+          path: bin
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "${{ matrix.os }}-yices-bin"
+          path: bin
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "${{ matrix.os }}-z3-bin"
+          path: bin
 
       - uses: actions/upload-artifact@v2
         with:
@@ -85,7 +159,6 @@ jobs:
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
     runs-on: ubuntu-20.04
-    needs:
-      - build
+    needs: [build_simple, build_complex]
     steps:
       - run: "true"
