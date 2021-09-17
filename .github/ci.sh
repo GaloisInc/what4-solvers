@@ -102,6 +102,7 @@ build_yices() {
       cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
     fi
     make -j4 static_poly
+    ls -lR install
     cp ./install/lib/libpoly.a $TOP/install-root/lib
     cp -r ./install/include/poly $TOP/install-root/include/
     popd
