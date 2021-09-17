@@ -114,6 +114,7 @@ build_yices() {
       dos2unix src/frontend/smt2/smt2_symbols.txt
       dos2unix src/frontend/smt1/smt_keywords.txt
       dos2unix src/frontend/yices/yices_keywords.txt
+      cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
       make -j4 static-bin
     else
       ./configure --enable-mcsat
