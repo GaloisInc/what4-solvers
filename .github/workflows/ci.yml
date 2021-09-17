@@ -125,26 +125,27 @@ jobs:
       matrix:
         os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
     steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-          fetch-depth: 0
-     - uses: actions/download-artifact@v2
+
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ runner.os }}-abc-bin"
           path: bin
-     - uses: actions/download-artifact@v2
+
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ runner.os }}-cvc4-bin"
           path: bin
-     - uses: actions/download-artifact@v2
+
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ runner.os }}-yices-bin"
           path: bin
-     - uses: actions/download-artifact@v2
+
+      - uses: actions/download-artifact@v2
         with:
           name: "${{ runner.os }}-z3-bin"
           path: bin
+
       - uses: actions/upload-artifact@v2
         with:
           path: bin
