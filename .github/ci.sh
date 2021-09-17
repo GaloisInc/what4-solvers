@@ -104,7 +104,7 @@ build_yices() {
     make -j4 static_poly
     cp ./src/libpoly.a $TOP/install-root/lib
     mkdir -p $TOP/install-root/include/poly
-    cp -r ./include/*.h $TOP/install-root/include/poly
+    cp -r ../include/*.h $TOP/install-root/include/poly
     popd
 
     pushd repos/yices2
