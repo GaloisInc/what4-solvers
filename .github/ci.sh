@@ -81,7 +81,7 @@ build_yices() {
   pushd repos/cudd
   case "$RUNNER_OS" in
     Linux) autoreconf ;;
-    macOS) autoconf ;;
+    macOS) autoreconf ;;
     Windows) autoconf ;;
   esac
   ./configure CFLAGS=-fPIC $CONFIGURE_FLAGS
