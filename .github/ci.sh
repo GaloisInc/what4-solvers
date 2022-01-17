@@ -5,6 +5,7 @@ set -Eeuxo pipefail
 TOP=$(pwd)
 BIN=$TOP/bin
 EXT=""
+PATCHES=$TOP/patches
 PROBLEM=$TOP/problems/mult_dist.smt2
 $IS_WIN && EXT=".exe"
 mkdir -p "$BIN"
@@ -29,6 +30,29 @@ build_abc() {
   fi
   cp abc$EXT $BIN
   (cd $BIN && deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < $PROBLEM)
+  popd
+  cleanup_bins
+}
+
+build_boolector() {
+  pushd repos/boolector
+  if $IS_WIN ; then
+    export CMAKE_OPTS="-DIS_WINDOWS_BUILD=1"
+    # Backport https://github.com/Boolector/boolector/pull/181
+    patch -p1 -i $PATCHES/boolector-mingw64.patch
+    # btorimc fails to link on Windows for unknown reasons, so disable building it
+    patch -p1 -i $PATCHES/boolector-no-btorimc-on-windows.patch
+    # googletest fails to build on Windows for unknown reasons, so disable testing
+    sed -i.bak -e 's/enable_testing()//' CMakeLists.txt
+    sed -i.bak -e 's/add_subdirectory(test)//' CMakeLists.txt
+  fi
+  ./contrib/setup-lingeling.sh
+  ./contrib/setup-btor2tools.sh
+  ./configure.sh
+  cd build
+  make -j4
+  cp bin/boolector$EXT $BIN
+  (cd $BIN && ./boolector$EXT --version && deps boolector$EXT && ./boolector$EXT $PROBLEM --no-exit-codes)
   popd
   cleanup_bins
 }
