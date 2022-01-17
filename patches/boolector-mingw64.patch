@@ -1,0 +1,13 @@
+diff --git a/contrib/setup-utils.sh b/contrib/setup-utils.sh
+index 57b77a8a..f07a97b2 100644
+--- a/contrib/setup-utils.sh
++++ b/contrib/setup-utils.sh
+@@ -66,7 +66,7 @@ function is_windows
+   # otherwise.
+   #
+   case "$(uname -s)" in
+-    CYGWIN*|MINGW32*|MSYS*)
++    CYGWIN*|MINGW32*|MINGW64*|MSYS*)
+       return
+       ;;
+   esac

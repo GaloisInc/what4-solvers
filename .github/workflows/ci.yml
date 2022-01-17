@@ -54,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, ubuntu-18.04, macos-10.15, windows-2019]
-        solver: [cvc4, yices, z3]
+        solver: [boolector, cvc4, yices, z3]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -82,6 +82,7 @@ jobs:
             autoconf
             automake
             cmake
+            curl
             dos2unix
             git
             gperf
@@ -89,7 +90,9 @@ jobs:
             m4
             make
             mingw-w64-x86_64-gcc
+            patch
             python
+            tar
             unzip
         if: runner.os == 'Windows'
 
@@ -129,6 +132,11 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: "${{ matrix.os }}-abc-bin"
+          path: bin
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "${{ matrix.os }}-boolector-bin"
           path: bin
 
       - uses: actions/download-artifact@v2
