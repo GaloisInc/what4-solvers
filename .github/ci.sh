@@ -40,17 +40,12 @@ build_boolector() {
     export CMAKE_OPTS="-DIS_WINDOWS_BUILD=1"
     # Backport https://github.com/Boolector/boolector/pull/181
     patch -p1 -i $PATCHES/boolector-mingw64.patch
-    # btorimc fails to link on Windows for unknown reasons, so disable building it
-    patch -p1 -i $PATCHES/boolector-no-btorimc-on-windows.patch
-    # googletest fails to build on Windows for unknown reasons, so disable testing
-    sed -i.bak -e 's/enable_testing()//' CMakeLists.txt
-    sed -i.bak -e 's/add_subdirectory(test)//' CMakeLists.txt
   fi
   ./contrib/setup-lingeling.sh
   ./contrib/setup-btor2tools.sh
-  ./configure.sh
+  ./configure.sh --ninja
   cd build
-  make -j4
+  ninja -j4
   cp bin/boolector$EXT $BIN
   (cd $BIN && ./boolector$EXT --version && deps boolector$EXT && ./boolector$EXT $PROBLEM --no-exit-codes)
   popd
@@ -116,13 +111,11 @@ build_yices() {
   pushd repos/libpoly
   cd build
   if $IS_WIN; then
-    sed -i.bak -e 's/enable_testing()//' ../CMakeLists.txt
-    sed -i.bak -e 's/add_subdirectory(test\/polyxx)//' ../CMakeLists.txt
-    cmake .. -DCMAKE_TOOLCHAIN_FILE=$TOP/scripts/libpoly-x86_64-w64-mingw32.cmake -DCMAKE_INSTALL_PREFIX=$TOP/install-root -DGMP_INCLUDE_DIR=$TOP/install-root/include -DGMP_LIBRARY=$TOP/install-root/lib/libgmp.a -DLIBPOLY_BUILD_PYTHON_API=Off
+    cmake .. -DCMAKE_TOOLCHAIN_FILE=$TOP/scripts/libpoly-x86_64-w64-mingw32.cmake -DCMAKE_INSTALL_PREFIX=$TOP/install-root -DGMP_INCLUDE_DIR=$TOP/install-root/include -DGMP_LIBRARY=$TOP/install-root/lib/libgmp.a -DLIBPOLY_BUILD_PYTHON_API=Off -GNinja
   else
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root -GNinja
   fi
-  make -j4 static_poly
+  ninja -j4 static_poly
   cp ./src/libpoly.a $TOP/install-root/lib
   mkdir -p $TOP/install-root/include/poly
   cp -r ../include/*.h $TOP/install-root/include/poly
