@@ -24,7 +24,7 @@ build_abc() {
     sed -i.bak -e 's/-ldl//' Makefile
     sed -i.bak2 -e 's/-lrt//' Makefile
     echo "double Cudd_CountMinterm( DdManager * manager, DdNode * node, int nvars ) { return 0.0; }" >> src/base/abci/abc.c
-    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64" CFLAGS="-DNT64" LDFLAGS="-static" -j4 abc
+    make ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64 -DWIN32_NO_DLL" CFLAGS="-DNT64 -DWIN32_NO_DLL" LDFLAGS="-static" -j4 abc
   else
     make -j4 abc
   fi
