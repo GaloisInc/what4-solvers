@@ -24,6 +24,10 @@ build_abc() {
     # Windows does not have libdl or librt
     sed -i.bak -e 's/-ldl//' Makefile
     sed -i.bak2 -e 's/-lrt//' Makefile
+    # By default, the Windows build of ABC will write an `abc.history` file
+    # to the current directory every time it is invoked. For consistency with
+    # ABC's behavior on other OSes, we disable this feature.
+    sed -i.bak3 -e 's/#define ABC_USE_HISTORY 1//' src/base/cmd/cmdHist.c
     # Work around https://github.com/berkeley-abc/abc/issues/136
     echo "double Cudd_CountMinterm( DdManager * manager, DdNode * node, int nvars ) { return 0.0; }" >> src/base/abci/abc.c
     # Work around https://github.com/berkeley-abc/abc/issues/154
