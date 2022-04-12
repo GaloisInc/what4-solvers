@@ -79,6 +79,26 @@ build_cvc4() {
   cleanup_bins
 }
 
+build_cvc5() {
+  pushd repos/cvc5
+  if $IS_WIN ; then
+    # TODO: Once https://github.com/cvc5/cvc5/pull/7512 lands, build a native
+    # Windows version of CVC5 instead.
+    echo "Downloading pre-built CVC5 binary for Windows"
+    curl -o cvc5$EXT -sL "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.0/cvc5-Win64.exe"
+    cp cvc5$EXT $BIN
+    deps cvc5$EXT
+  else
+    ./configure.sh --static --no-static-binary --auto-download production
+    cd build
+    make -j4
+    cp bin/cvc5$EXT $BIN
+    (cd $BIN && ./cvc5$EXT --version && deps cvc5$EXT && ./cvc5$EXT $PROBLEM)
+  fi
+  popd
+  cleanup_bins
+}
+
 build_yices() {
   if $IS_WIN ; then
     export CC=x86_64-w64-mingw32-gcc
