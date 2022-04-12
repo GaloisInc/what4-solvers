@@ -19,3 +19,6 @@
 [submodule "repos/z3"]
 	path = repos/z3
 	url = https://github.com/Z3Prover/z3
+[submodule "repos/cvc5"]
+	path = repos/cvc5
+	url = https://github.com/cvc5/cvc5
