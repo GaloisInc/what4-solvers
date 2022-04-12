@@ -32,7 +32,11 @@ jobs:
       - name: Install dependencies (macOS)
         run: |
           brew update
-          brew install gperf automake autoconf ninja
+          brew install gperf automake autoconf ninja gnu-sed
+          # macOS's version of sed lacks the -r option, which CVC5 requires. To
+          # work around this, we install put GNU sed before macOS's sed on the
+          # PATH.
+          echo "PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH" >> $GITHUB_ENV
         if: runner.os == 'macOS'
 
       - name: Install dependencies (Windows)
