@@ -66,15 +66,14 @@ build_cvc4() {
     echo "Downloading pre-built CVC4 binary for Windows"
     curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/1.8/cvc4-1.8-win64-opt.exe"
     cp cvc4$EXT $BIN
-    deps cvc4$EXT
   else
     ./contrib/get-antlr-3.4
     ./configure.sh --static --no-static-binary production
     cd build
     make -j4
     cp bin/cvc4$EXT $BIN
-    (cd $BIN && ./cvc4$EXT --version && deps cvc4$EXT && ./cvc4$EXT $PROBLEM)
   fi
+  (cd $BIN && ./cvc4$EXT --version && deps cvc4$EXT && ./cvc4$EXT $PROBLEM)
   popd
   cleanup_bins
 }
@@ -87,14 +86,13 @@ build_cvc5() {
     echo "Downloading pre-built CVC5 binary for Windows"
     curl -o cvc5$EXT -sL "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.0/cvc5-Win64.exe"
     cp cvc5$EXT $BIN
-    deps cvc5$EXT
   else
     ./configure.sh --static --no-static-binary --auto-download production
     cd build
     make -j4
     cp bin/cvc5$EXT $BIN
-    (cd $BIN && ./cvc5$EXT --version && deps cvc5$EXT && ./cvc5$EXT $PROBLEM)
   fi
+  (cd $BIN && ./cvc5$EXT --version && deps cvc5$EXT && ./cvc5$EXT $PROBLEM)
   popd
   cleanup_bins
 }
