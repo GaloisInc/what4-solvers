@@ -68,7 +68,8 @@ build_cvc4() {
     cp cvc4$EXT $BIN
   else
     ./contrib/get-antlr-3.4
-    ./configure.sh --static --no-static-binary production
+    ./contrib/get-symfpu
+    ./configure.sh --static --no-static-binary --symfpu production
     cd build
     make -j4
     cp bin/cvc4$EXT $BIN
