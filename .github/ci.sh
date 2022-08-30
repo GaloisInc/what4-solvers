@@ -85,7 +85,7 @@ build_cvc5() {
     # TODO: Once https://github.com/cvc5/cvc5/pull/7512 lands, build a native
     # Windows version of CVC5 instead.
     echo "Downloading pre-built CVC5 binary for Windows"
-    curl -o cvc5$EXT -sL "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.1/cvc5-Win64.exe"
+    curl -o cvc5$EXT -sL "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.2/cvc5-Win64.exe"
     cp cvc5$EXT $BIN
   else
     ./configure.sh --static --no-static-binary --auto-download production
