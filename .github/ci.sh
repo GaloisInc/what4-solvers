@@ -169,15 +169,24 @@ build_yices() {
   cleanup_bins
 }
 
+build_z3-4.8.10() {
+  build_z3 "4.8.10"
+}
+
+build_z3-4.8.14() {
+  build_z3 "4.8.14"
+}
+
 build_z3() {
-  pushd repos/z3
+  Z3_BIN="z3-$1"
+  pushd repos/$Z3_BIN
   if $IS_WIN ; then
     sed -i.bak -e 's/STATIC_BIN=False/STATIC_BIN=True/' scripts/mk_util.py
   fi
   python scripts/mk_make.py
-  (cd build && make -j4 && cp z3$EXT $BIN)
+  (cd build && make -j4 && cp z3$EXT $BIN/$Z3_BIN$EXT)
   popd
-  (cd $BIN && ./z3$EXT --version && deps z3$EXT && ./z3$EXT $PROBLEM)
+  (cd $BIN && ./$Z3_BIN$EXT --version && deps $Z3_BIN$EXT && ./$Z3_BIN$EXT $PROBLEM)
   cleanup_bins
 }
 

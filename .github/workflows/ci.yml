@@ -8,6 +8,7 @@ on:
 
 env:
   CACHE_VERSION: 1
+  LATEST_Z3_VERSION: "4.8.14"
 
 jobs:
   build:
@@ -16,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-20.04, macos-12, windows-2019]
-        solver: [abc, boolector, cvc4, cvc5, yices, z3]
+        solver: [abc, boolector, cvc4, cvc5, yices, z3-4.8.10, z3-4.8.14]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -95,7 +96,6 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-20.04, macos-12, windows-2019]
     steps:
-
       - uses: actions/download-artifact@v2
         with:
           name: "${{ matrix.os }}-abc-bin"
@@ -123,8 +123,21 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: "${{ matrix.os }}-z3-bin"
+          name: "${{ matrix.os }}-z3-4.8.10-bin"
           path: bin
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: "${{ matrix.os }}-z3-4.8.14-bin"
+          path: bin
+
+        # Make a copy of z3-<LATEST_Z3_VERSION> named z3 for ease of use.
+        # Unfortunately, GitHub Actions' upload-artifact action doesn't support
+        # symlinks (see https://github.com/actions/upload-artifact/issues/93),
+        # so we have no choice but to copy the entire binary.
+      - name: Copy latest Z3 version
+        shell: bash
+        run: cp bin/z3-${{ env.LATEST_Z3_VERSION }} bin/z3
 
       - uses: actions/upload-artifact@v2
         with:
