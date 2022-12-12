@@ -169,8 +169,8 @@ build_yices() {
   cleanup_bins
 }
 
-build_z3-4.8.10() {
-  build_z3 "4.8.10"
+build_z3-4.8.8() {
+  build_z3 "4.8.8"
 }
 
 build_z3-4.8.14() {

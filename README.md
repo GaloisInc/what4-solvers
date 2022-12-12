@@ -14,7 +14,7 @@ Currently, `what4-solvers` offers the following solver versions:
 * CVC4 - [1.8](https://github.com/CVC4/CVC4-archived/tree/5247901077efbc7b9016ba35fded7a6ab459a379)
 * CVC5 - [1.0.2](https://github.com/cvc5/cvc5/tree/ef35c1131976e5a3d981dace510d90aed2d11cef)
 * Yices - [2.6.2](https://github.com/SRI-CSL/yices2/tree/8509cfb5c294df3c0ac3a4814483f39c58879606)
-* Z3 - [4.8.10](https://github.com/Z3Prover/z3/tree/517d907567f4283ad8b48ff9c2a3f6dce838569e) and
+* Z3 - [4.8.8](https://github.com/Z3Prover/z3/tree/ad55a1f1c617a7f0c3dd735c0780fc758424c7f1) and
        [4.8.14](https://github.com/Z3Prover/z3/tree/df8f9d7dcb8b9f9b3de1072017b7c2b7f63f0af8)
 
 Built for the following operating systems:

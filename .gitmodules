@@ -16,8 +16,8 @@
 [submodule "repos/yices2"]
 	path = repos/yices2
 	url = https://github.com/SRI-CSL/yices2
-[submodule "repos/z3-4.8.10"]
-	path = repos/z3-4.8.10
+[submodule "repos/z3-4.8.8"]
+	path = repos/z3-4.8.8
 	url = https://github.com/Z3Prover/z3
 [submodule "repos/z3-4.8.14"]
 	path = repos/z3-4.8.14
