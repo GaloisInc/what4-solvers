@@ -62,18 +62,25 @@ build_boolector() {
 
 build_cvc4() {
   pushd repos/CVC4-archived
+  ./contrib/get-antlr-3.4
+  ./contrib/get-symfpu
   if $IS_WIN ; then
-    echo "Downloading pre-built CVC4 binary for Windows"
-    curl -o cvc4$EXT -sL "https://github.com/CVC4/CVC4/releases/download/1.8/cvc4-1.8-win64-opt.exe"
-    cp cvc4$EXT $BIN
+    # Backport changes from https://github.com/cvc5/cvc5/pull/7512 needed to
+    # build CVC4 natively on Windows.
+    patch -p1 -i $PATCHES/cvc4-win64-native.patch
+    # GitHub Actions comes preinstalled with Chocolatey's mingw package, which
+    # includes the ld.gold linker. This does not play nicely with MSYS2's
+    # mingw-w64-x86_64-gcc, so we must prevent CMake from using ld.gold.
+    # (Ideally, there would be a CMake configuration option to accomplish this,
+    # but I have not found one.)
+    patch -p1 -i $PATCHES/cvc4-no-ld-gold.patch
+    ./configure.sh --static --static-binary --symfpu --win64-native production
   else
-    ./contrib/get-antlr-3.4
-    ./contrib/get-symfpu
     ./configure.sh --static --no-static-binary --symfpu production
-    cd build
-    make -j4
-    cp bin/cvc4$EXT $BIN
   fi
+  cd build
+  make -j4
+  cp bin/cvc4$EXT $BIN
   (cd $BIN && ./cvc4$EXT --version && deps cvc4$EXT && ./cvc4$EXT $PROBLEM)
   popd
   cleanup_bins
@@ -82,17 +89,25 @@ build_cvc4() {
 build_cvc5() {
   pushd repos/cvc5
   if $IS_WIN ; then
-    # TODO: Once https://github.com/cvc5/cvc5/pull/7512 lands, build a native
-    # Windows version of CVC5 instead.
-    echo "Downloading pre-built CVC5 binary for Windows"
-    curl -o cvc5$EXT -sL "https://github.com/cvc5/cvc5/releases/download/cvc5-1.0.2/cvc5-Win64.exe"
-    cp cvc5$EXT $BIN
+    # Work around https://github.com/cvc5/cvc5/issues/9564
+    patch -p1 -i $PATCHES/cvc5-win64-native.patch
+    # GitHub Actions comes preinstalled with Chocolatey's mingw package, which
+    # includes the ld.gold linker. This does not play nicely with MSYS2's
+    # mingw-w64-x86_64-gcc, so we must prevent CMake from using ld.gold.
+    # (Ideally, there would be a CMake configuration option to accomplish this,
+    # but I have not found one.)
+    patch -p1 -i $PATCHES/cvc5-no-ld-gold.patch
+    # Why do we manually override Python_EXECUTABLE below? GitHub Actions comes
+    # with multiple versions of Python pre-installed, and for some bizarre
+    # reason, CMake always tries to pick the latest version, even if it is not
+    # on the PATH. Manually overriding this option avoids this oddity.
+    ./configure.sh -DPython_EXECUTABLE=${pythonLocation}/python${EXT} --static --static-binary --auto-download --win64-native production
   else
-    ./configure.sh --static --no-static-binary --auto-download production
-    cd build
-    make -j4
-    cp bin/cvc5$EXT $BIN
+    ./configure.sh -DPython_EXECUTABLE=${pythonLocation}/python${EXT} --static --no-static-binary --auto-download production
   fi
+  cd build
+  make -j4
+  cp bin/cvc5$EXT $BIN
   (cd $BIN && ./cvc5$EXT --version && deps cvc5$EXT && ./cvc5$EXT $PROBLEM)
   popd
   cleanup_bins
