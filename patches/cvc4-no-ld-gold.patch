@@ -1,0 +1,24 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e4d4aaeda..c604ba989 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -238,19 +238,6 @@ if (WIN32)
+   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
+ endif ()
+ 
+-#-----------------------------------------------------------------------------#
+-# Use ld.gold if available
+-
+-execute_process(COMMAND ${CMAKE_C_COMPILER}
+-                -fuse-ld=gold
+-                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
+-if ("${LD_VERSION}" MATCHES "GNU gold")
+-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=gold")
+-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
+-  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
+-  message(STATUS "Using GNU gold linker.")
+-endif ()
+-
+ #-----------------------------------------------------------------------------#
+ # Option defaults (three-valued options (cvc4_option(...)))
+ #
