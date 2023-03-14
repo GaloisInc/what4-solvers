@@ -195,11 +195,15 @@ build_z3-4.8.14() {
 build_z3() {
   Z3_BIN="z3-$1"
   pushd repos/$Z3_BIN
+  mkdir build
+  cd build
   if $IS_WIN ; then
-    sed -i.bak -e 's/STATIC_BIN=False/STATIC_BIN=True/' scripts/mk_util.py
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS:STRING='-static' -GNinja
+  else
+    cmake .. -DCMAKE_BUILD_TYPE=Release -GNinja
   fi
-  python scripts/mk_make.py
-  (cd build && make -j4 && cp z3$EXT $BIN/$Z3_BIN$EXT)
+  ninja -j4
+  cp z3$EXT $BIN/$Z3_BIN$EXT
   popd
   (cd $BIN && ./$Z3_BIN$EXT --version && deps $Z3_BIN$EXT && ./$Z3_BIN$EXT $PROBLEM)
   cleanup_bins
