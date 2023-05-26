@@ -62,6 +62,7 @@ build_boolector() {
 
 build_cvc4() {
   pushd repos/CVC4-archived
+  patch -p1 -i $PATCHES/cvc4-antlr-check-aarch64.patch
   ./contrib/get-antlr-3.4
   ./contrib/get-symfpu
   if $IS_WIN ; then
