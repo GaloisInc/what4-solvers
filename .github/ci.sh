@@ -131,6 +131,7 @@ build_yices() {
     export CONFIGURE_FLAGS="--prefix=$TOP/install-root"
   fi
 
+  mkdir -p install-root
   mkdir -p install-root/include
   mkdir -p install-root/lib
 
