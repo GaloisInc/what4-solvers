@@ -89,6 +89,8 @@ build_cvc4() {
 
 build_cvc5() {
   pushd repos/cvc5
+  # Work around https://github.com/cvc5/cvc5/issues/9778
+  patch -p1 -i $PATCHES/cvc5-gcc-13-fix.patch
   if $IS_WIN ; then
     # Work around https://github.com/cvc5/cvc5/issues/9564
     patch -p1 -i $PATCHES/cvc5-win64-native.patch
