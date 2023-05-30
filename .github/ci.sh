@@ -134,9 +134,8 @@ build_yices() {
     export CONFIGURE_FLAGS="--prefix=$TOP/install-root"
   fi
 
-  mkdir install-root
-  mkdir install-root/include
-  mkdir install-root/lib
+  mkdir -p install-root/include
+  mkdir -p install-root/lib
 
   (cd repos && curl -o gmp.tar.lz -sL "https://gmplib.org/download/gmp/gmp-6.2.1.tar.lz" && tar xf gmp.tar.lz)
 
