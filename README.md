@@ -19,10 +19,15 @@ Currently, `what4-solvers` offers the following solver versions:
 
 Built for the following operating systems:
 
-* macOS Monterey 12
-* Ubuntu 20.04
-* Ubuntu 22.04
-* Windows Server 2019
+* macOS Monterey 12 (x86-64 and arm64)
+* Ubuntu 20.04 (x86-64)
+* Ubuntu 22.04 (x86-64)
+* Windows Server 2019 (x86-64)
+
+All of the binary distributions are built from CI with the exception of the
+arm64 macOS binaries, which are currently built manually. Eventually, we will
+produce the arm64 macOS binaries in CI as well. (See [this
+issue](https://github.com/GaloisInc/what4-solvers/issues/34).)
 
 ## FAQ
 
