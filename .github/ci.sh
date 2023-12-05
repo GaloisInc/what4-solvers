@@ -42,6 +42,17 @@ build_abc() {
   cleanup_bins
 }
 
+build_bitwuzla() {
+  pushd repos/bitwuzla
+  ./configure.py
+  cd build
+  ninja -j4
+  cp src/main/bitwuzla$EXT $BIN
+  (cd $BIN && ./bitwuzla$EXT --version && deps bitwuzla$EXT && ./bitwuzla$EXT $PROBLEM)
+  popd
+  cleanup_bins
+}
+
 build_boolector() {
   pushd repos/boolector
   if $IS_WIN ; then
