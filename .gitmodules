@@ -25,3 +25,6 @@
 [submodule "repos/cvc5"]
 	path = repos/cvc5
 	url = https://github.com/cvc5/cvc5
+[submodule "repos/bitwuzla"]
+	path = repos/bitwuzla
+	url = https://github.com/bitwuzla/bitwuzla
