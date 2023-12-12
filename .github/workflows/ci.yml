@@ -83,11 +83,15 @@ jobs:
       - name: build_solver (non-Windows)
         shell: bash
         run: .github/ci.sh build_${{ matrix.solver }}
+        env:
+          GITHUB_MATRIX_OS: ${{ matrix.os }}
         if: runner.os != 'Windows'
 
       - name: build_solver (Windows)
         shell: msys2 {0}
         run: .github/ci.sh build_${{ matrix.solver }}
+        env:
+          GITHUB_MATRIX_OS: ${{ matrix.os }}
         if: runner.os == 'Windows'
 
       - uses: actions/upload-artifact@v2

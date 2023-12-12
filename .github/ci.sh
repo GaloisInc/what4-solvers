@@ -44,6 +44,13 @@ build_abc() {
 
 build_bitwuzla() {
   pushd repos/bitwuzla
+  if [ "$GITHUB_MATRIX_OS" == 'ubuntu-20.04' ] ; then
+    # Ubuntu 20.04 uses an older version of glibc that is susceptible to
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58909, so we must apply a
+    # crude workaround for it. Thankfully, this is not required for the version
+    # of glibc that ships with Ubuntu 22.04.
+    patch -p1 -i $PATCHES/bitwuzla-T58909-workaround.patch
+  fi
   ./configure.py
   cd build
   ninja -j4
