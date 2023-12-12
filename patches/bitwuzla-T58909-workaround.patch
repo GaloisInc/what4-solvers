@@ -1,0 +1,31 @@
+diff --git a/src/main/time_limit.cpp b/src/main/time_limit.cpp
+index 45238be4..f1ee25cb 100644
+--- a/src/main/time_limit.cpp
++++ b/src/main/time_limit.cpp
+@@ -6,6 +6,7 @@
+ #include <cstdlib>
+ #include <iostream>
+ #include <thread>
++#include <pthread.h>
+
+ namespace bzla::main {
+
+@@ -15,6 +16,18 @@ std::condition_variable cv;
+ std::mutex cv_m;
+ bool time_limit_set = false;
+
++// Work around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58909
++// on old versions of glibc
++void pthread_cond_bug() {
++  pthread_cond_signal((pthread_cond_t *) nullptr);
++  pthread_cond_init((pthread_cond_t *) nullptr,
++                    (const pthread_condattr_t *) nullptr);
++  pthread_cond_destroy((pthread_cond_t *) nullptr);
++  pthread_cond_timedwait((pthread_cond_t *) nullptr, (pthread_mutex_t *)
++                         nullptr, (const struct timespec *) nullptr);
++  pthread_cond_wait((pthread_cond_t *) nullptr, (pthread_mutex_t *) nullptr);
++}
++
+ void
+ timeout_reached()
+ {
