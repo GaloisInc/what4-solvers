@@ -27,13 +27,13 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           sudo apt-get update
-          sudo apt-get install libfl-dev gperf automake autoconf lzip ninja-build
+          sudo apt-get install gperf automake autoconf lzip ninja-build
         if: runner.os == 'Linux'
 
       - name: Install dependencies (macOS)
         run: |
           brew update
-          brew install flex gperf automake autoconf ninja gnu-sed
+          brew install gperf automake autoconf ninja gnu-sed
           # macOS's version of sed lacks the -r option, which CVC5 requires. To
           # work around this, we install put GNU sed before macOS's sed on the
           # PATH.
@@ -51,7 +51,6 @@ jobs:
             automake
             curl
             dos2unix
-            flex
             git
             gperf
             lzip
@@ -73,7 +72,7 @@ jobs:
       - name: Install Python libraries
         run: |
           python -m pip install --upgrade pip
-          pip install pyparsing toml
+          pip install pyparsing toml tomli
 
       - name: Install Java
         uses: actions/setup-java@v3
