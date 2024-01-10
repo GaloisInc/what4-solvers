@@ -50,6 +50,7 @@ build_boolector() {
     patch -p1 -i $PATCHES/boolector-mingw64.patch
   fi
   ./contrib/setup-lingeling.sh
+  ./contrib/setup-cadical.sh
   ./contrib/setup-btor2tools.sh
   ./configure.sh --ninja
   cd build
