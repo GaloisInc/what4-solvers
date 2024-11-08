@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-20.04, macos-13, macos-14, windows-2019]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
@@ -65,7 +65,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -94,7 +94,7 @@ jobs:
           GITHUB_MATRIX_OS: ${{ matrix.os }}
         if: runner.os == 'Windows'
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           path: bin
           name: ${{ matrix.os }}-${{ runner.arch }}-${{ matrix.solver }}-bin
@@ -107,42 +107,42 @@ jobs:
       matrix:
         os: [ubuntu-22.04, ubuntu-20.04, macos-13, macos-14, windows-2019]
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: "${{ matrix.os }}-${{ runner.arch }}-abc-bin"
           path: bin
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: "${{ matrix.os }}-${{ runner.arch }}-bitwuzla-bin"
           path: bin
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: "${{ matrix.os }}-${{ runner.arch }}-boolector-bin"
           path: bin
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: "${{ matrix.os }}-${{ runner.arch }}-cvc4-bin"
           path: bin
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: "${{ matrix.os }}-${{ runner.arch }}-cvc5-bin"
           path: bin
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: "${{ matrix.os }}-${{ runner.arch }}-yices-bin"
           path: bin
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: "${{ matrix.os }}-${{ runner.arch }}-z3-4.8.8-bin"
           path: bin
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
           name: "${{ matrix.os }}-${{ runner.arch }}-z3-4.8.14-bin"
           path: bin
@@ -155,7 +155,7 @@ jobs:
         shell: bash
         run: cp bin/z3-${{ env.LATEST_Z3_VERSION }} bin/z3
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           path: bin
           name: ${{ matrix.os }}-${{ runner.arch }}-bin
