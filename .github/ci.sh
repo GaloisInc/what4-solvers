@@ -44,6 +44,8 @@ build_abc() {
 
 build_bitwuzla() {
   pushd repos/bitwuzla
+  # Backport a fix for https://github.com/bitwuzla/bitwuzla/issues/118
+  patch -p1 -i $PATCHES/bitwuzla-fix-missing-includes-gcc14.patch
   if [ "$GITHUB_MATRIX_OS" == 'ubuntu-20.04' ] ; then
     # Ubuntu 20.04 uses an older version of glibc that is susceptible to
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58909, so we must apply a
