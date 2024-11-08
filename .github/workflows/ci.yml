@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, macos-12, macos-14, windows-2019]
+        os: [ubuntu-22.04, ubuntu-20.04, macos-13, macos-14, windows-2019]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
       - uses: actions/checkout@v2
@@ -105,7 +105,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, macos-12, macos-14, windows-2019]
+        os: [ubuntu-22.04, ubuntu-20.04, macos-13, macos-14, windows-2019]
     steps:
       - uses: actions/download-artifact@v2
         with:

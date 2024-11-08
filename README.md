@@ -20,7 +20,7 @@ Currently, `what4-solvers` offers the following solver versions:
 
 Built for the following operating systems:
 
-* macOS Monterey 12 (x86-64)
+* macOS Ventura 13 (x86-64)
 * macOS Sonoma 14 (arm64)
 * Ubuntu 20.04 (x86-64)
 * Ubuntu 22.04 (x86-64)
