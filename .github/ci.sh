@@ -44,6 +44,8 @@ build_abc() {
 
 build_bitwuzla() {
   pushd repos/bitwuzla
+  # Backport a fix for https://github.com/bitwuzla/bitwuzla/issues/118
+  patch -p1 -i $PATCHES/bitwuzla-fix-missing-includes-gcc14.patch
   if [ "$GITHUB_MATRIX_OS" == 'ubuntu-20.04' ] ; then
     # Ubuntu 20.04 uses an older version of glibc that is susceptible to
     # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58909, so we must apply a
@@ -82,6 +84,8 @@ build_boolector() {
 build_cvc4() {
   pushd repos/CVC4-archived
   patch -p1 -i $PATCHES/cvc4-antlr-check-aarch64.patch
+  # Add missing #include statements that macos-14's version of Clang++ requires.
+  patch -p1 -i $PATCHES/cvc4-fix-missing-includes.patch
   ./contrib/get-antlr-3.4
   ./contrib/get-symfpu
   if $IS_WIN ; then
