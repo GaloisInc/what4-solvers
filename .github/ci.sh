@@ -84,6 +84,8 @@ build_boolector() {
 build_cvc4() {
   pushd repos/CVC4-archived
   patch -p1 -i $PATCHES/cvc4-antlr-check-aarch64.patch
+  # Add missing #include statements that macos-14's version of Clang++ requires.
+  patch -p1 -i $PATCHES/cvc4-fix-missing-includes.patch
   ./contrib/get-antlr-3.4
   ./contrib/get-symfpu
   if $IS_WIN ; then
