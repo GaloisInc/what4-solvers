@@ -83,7 +83,10 @@ build_boolector() {
 
 build_cvc4() {
   pushd repos/CVC4-archived
+  # Make the get-antlr script work on both x86-64 and AArch64
   patch -p1 -i $PATCHES/cvc4-antlr-check-aarch64.patch
+  # Fix a pointer-to-integer cast in ANTLR
+  patch -p1 -i $PATCHES/cvc4-antlr-pointer-to-integer-cast.patch
   # Add missing #include statements that macos-14's version of Clang++ requires.
   patch -p1 -i $PATCHES/cvc4-fix-missing-includes.patch
   ./contrib/get-antlr-3.4
