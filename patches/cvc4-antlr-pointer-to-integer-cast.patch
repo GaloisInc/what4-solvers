@@ -1,0 +1,22 @@
+diff --git a/src/parser/antlr_line_buffered_input.cpp b/src/parser/antlr_line_buffered_input.cpp
+index cdf553880..ba0214dd4 100644
+--- a/src/parser/antlr_line_buffered_input.cpp
++++ b/src/parser/antlr_line_buffered_input.cpp
+@@ -31,6 +31,7 @@
+ #include "parser/antlr_line_buffered_input.h"
+
+ #include <antlr3.h>
++#include <stdint.h>
+ #include <iostream>
+ #include <string>
+ #include <cassert>
+@@ -288,7 +289,7 @@ static void bufferedInputSeek(pANTLR3_INT_STREAM is, ANTLR3_MARKER seekPoint) {
+               ->line_buffer->isPtrBefore(
+                   (uint8_t*)seekPoint, input->line, input->charPositionInLine));
+
+-  while ((ANTLR3_MARKER)(input->nextChar) != seekPoint) {
++  while ((ANTLR3_MARKER)((intptr_t)input->nextChar) != seekPoint) {
+     is->consume(is);
+   }
+ }
+
