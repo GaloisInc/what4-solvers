@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           sudo apt-get update
-          sudo apt-get install gperf automake autoconf lzip ninja-build
+          sudo apt-get install gperf automake autoconf libreadline-dev lzip ninja-build
         if: runner.os == 'Linux'
 
       - name: Install dependencies (macOS)
