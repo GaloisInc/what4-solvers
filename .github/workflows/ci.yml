@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, macos-13, macos-14, windows-2019]
+        os: [ubuntu-24.04, ubuntu-22.04, macos-13, macos-14, windows-2019]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
       - uses: actions/checkout@v4
@@ -105,7 +105,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, macos-13, macos-14, windows-2019]
+        os: [ubuntu-24.04, ubuntu-22.04, macos-13, macos-14, windows-2019]
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -167,7 +167,7 @@ jobs:
   # - changes to jobs or job instances don't require a mergify config update
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [build]
     steps:
       - run: "true"
