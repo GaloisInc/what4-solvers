@@ -155,9 +155,10 @@ build_yices() {
   mkdir -p install-root/include
   mkdir -p install-root/lib
 
-  (cd repos && curl -o gmp.tar.lz -sL "https://ftp.gnu.org/gnu/gmp/gmp-6.2.1.tar.lz" && tar xf gmp.tar.lz)
+  GMP_VERSION="6.3.0"
+  (cd repos && curl -o gmp.tar.lz -sL "https://ftp.gnu.org/gnu/gmp/gmp-$GMP_VERSION.tar.lz" && tar xf gmp.tar.lz)
 
-  pushd repos/gmp-6.2.1
+  pushd "repos/gmp-$GMP_VERSION"
   ./configure $CONFIGURE_FLAGS
   make -j4
   make install
