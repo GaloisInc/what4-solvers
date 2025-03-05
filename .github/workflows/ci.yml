@@ -19,6 +19,14 @@ jobs:
         os: [ubuntu-24.04, ubuntu-22.04, macos-13, macos-14, windows-2019]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
+      # This is necessary to clone the yices2 repo on Windows, as some of the
+      # repo's test cases exceed the Windows API's default file path limit of
+      # 260 characters.
+      - name: Enable long file paths on Windows
+        shell: bash
+        run: git config --system core.longpaths true
+        if: runner.os == 'Windows'
+
       - uses: actions/checkout@v4
         with:
           submodules: true
