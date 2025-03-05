@@ -44,8 +44,6 @@ build_abc() {
 
 build_bitwuzla() {
   pushd repos/bitwuzla
-  # Backport a fix for https://github.com/bitwuzla/bitwuzla/issues/118
-  patch -p1 -i $PATCHES/bitwuzla-fix-missing-includes-gcc14.patch
   ./configure.py
   cd build
   ninja -j4
