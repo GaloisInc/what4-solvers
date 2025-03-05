@@ -24,18 +24,23 @@ Built for the following operating systems:
 * macOS Sonoma 14 (arm64)
 * Ubuntu 22.04 (x86-64)
 * Ubuntu 24.04 (x86-64)
+* Ubuntu 24.04 (arm64)
 * Windows Server 2019 (x86-64)
 
 All of the binary distributions are built from CI.
 
 ## FAQ
 
-### Why build for multiple Ubuntu versions?
+### Why build for multiple x86-64 Ubuntu versions?
 
-We attempt to offer somewhat broad coverage of different Linux versions. To
-that end, we build each solver on the two most recent Ubuntu LTS releases. This
-ensures relatively complete coverage of different shared library dependencies
-(e.g., different `glibc` versions).
+We attempt to offer somewhat broad coverage of different x86-64 Linux versions.
+To that end, we build each solver on the two most recent x86-64 Ubuntu LTS
+releases. This ensures relatively complete coverage of different shared library
+dependencies (e.g., different `glibc` versions).
+
+In contrast, we currently only build each solver on the latest arm64 Ubuntu LTS
+release. Please file an issue is this support window is too narrow for your
+needs.
 
 ### Why offer multiple Z3 versions?
 
