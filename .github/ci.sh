@@ -44,15 +44,6 @@ build_abc() {
 
 build_bitwuzla() {
   pushd repos/bitwuzla
-  # Backport a fix for https://github.com/bitwuzla/bitwuzla/issues/118
-  patch -p1 -i $PATCHES/bitwuzla-fix-missing-includes-gcc14.patch
-  if [ "$GITHUB_MATRIX_OS" == 'ubuntu-20.04' ] ; then
-    # Ubuntu 20.04 uses an older version of glibc that is susceptible to
-    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58909, so we must apply a
-    # crude workaround for it. Thankfully, this is not required for the version
-    # of glibc that ships with Ubuntu 22.04.
-    patch -p1 -i $PATCHES/bitwuzla-T58909-workaround.patch
-  fi
   ./configure.py
   cd build
   ninja -j4
@@ -89,6 +80,14 @@ build_cvc4() {
   patch -p1 -i $PATCHES/cvc4-antlr-pointer-to-integer-cast.patch
   # Add missing #include statements that macos-14's version of Clang++ requires.
   patch -p1 -i $PATCHES/cvc4-fix-missing-includes.patch
+  # Backport a fix for https://github.com/cvc5/cvc5/issues/10591, which causes
+  # bash-5.2 to spuriously replace uses of ampersands (&) in text replacement.
+  # This patch was accumulated from the following CVC5 pull requests:
+  #
+  # * https://github.com/cvc5/cvc5/pull/9233
+  # * https://github.com/cvc5/cvc5/pull/9330
+  # * https://github.com/cvc5/cvc5/pull/9338
+  patch -p1 -i $PATCHES/cvc4-fix-spurious-bash-replacements.patch
   ./contrib/get-antlr-3.4
   ./contrib/get-symfpu
   if $IS_WIN ; then

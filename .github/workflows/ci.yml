@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, macos-13, macos-14, windows-2019]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, ubuntu-22.04, macos-13, macos-14, windows-2019]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
       # This is necessary to clone the yices2 repo on Windows, as some of the
@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           sudo apt-get update
-          sudo apt-get install gperf automake autoconf lzip ninja-build
+          sudo apt-get install gperf automake autoconf libreadline-dev lzip ninja-build
         if: runner.os == 'Linux'
 
       - name: Install dependencies (macOS)
@@ -113,7 +113,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04, macos-13, macos-14, windows-2019]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, ubuntu-22.04, macos-13, macos-14, windows-2019]
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -175,7 +175,7 @@ jobs:
   # - changes to jobs or job instances don't require a mergify config update
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [build]
     steps:
       - run: "true"
