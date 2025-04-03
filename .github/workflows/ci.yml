@@ -9,6 +9,10 @@ on:
 env:
   CACHE_VERSION: 1
   LATEST_Z3_VERSION: "4.8.14"
+  # Some of the runners (e.g., Windows) use very recent versions of CMake that
+  # are no longer compatible with CMake < 3.5, which is required by various
+  # solvers' builds. For now, we try using the recent CMake versions anyway.
+  CMAKE_POLICY_VERSION_MINIMUM: "3.5"
 
 jobs:
   build:
