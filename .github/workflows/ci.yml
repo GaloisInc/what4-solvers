@@ -102,10 +102,16 @@ jobs:
         run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os == 'Windows'
 
+      # Needed to normalize both "ubuntu-24.04" and "ubuntu-24.04-arm" to
+      # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
+      # mention ARM twice (#63).
+      - name: Normalize runner name
+        run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
+
       - uses: actions/upload-artifact@v4
         with:
           path: bin
-          name: ${{ matrix.os }}-${{ runner.arch }}-${{ matrix.solver }}-bin
+          name: ${{ env.OS_NAME }}-${{ runner.arch }}-${{ matrix.solver }}-bin
 
   package_solvers:
     runs-on: ${{ matrix.os }}
@@ -115,44 +121,55 @@ jobs:
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm, ubuntu-22.04, macos-13, macos-14, windows-2019]
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+
+      # Needed to normalize both "ubuntu-24.04" and "ubuntu-24.04-arm" to
+      # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
+      # mention ARM twice (#63).
+      - name: Normalize runner name
+        run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
+
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ runner.arch }}-abc-bin"
+          name: "${{ env.OS_NAME }}-${{ runner.arch }}-abc-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ runner.arch }}-bitwuzla-bin"
+          name: "${{ env.OS_NAME }}-${{ runner.arch }}-bitwuzla-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ runner.arch }}-boolector-bin"
+          name: "${{ env.OS_NAME }}-${{ runner.arch }}-boolector-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ runner.arch }}-cvc4-bin"
+          name: "${{ env.OS_NAME }}-${{ runner.arch }}-cvc4-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ runner.arch }}-cvc5-bin"
+          name: "${{ env.OS_NAME }}-${{ runner.arch }}-cvc5-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ runner.arch }}-yices-bin"
+          name: "${{ env.OS_NAME }}-${{ runner.arch }}-yices-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ runner.arch }}-z3-4.8.8-bin"
+          name: "${{ env.OS_NAME }}-${{ runner.arch }}-z3-4.8.8-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ matrix.os }}-${{ runner.arch }}-z3-4.8.14-bin"
+          name: "${{ env.OS_NAME }}-${{ runner.arch }}-z3-4.8.14-bin"
           path: bin
 
         # Make a copy of z3-<LATEST_Z3_VERSION> named z3 for ease of use.
@@ -166,7 +183,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: bin
-          name: ${{ matrix.os }}-${{ runner.arch }}-bin
+          name: ${{ env.OS_NAME }}-${{ runner.arch }}-bin
 
   # Indicates sufficient CI success for the purposes of mergify merging the pull
   # request, see .github/mergify.yml. This is done instead of enumerating each
