@@ -238,6 +238,21 @@ cleanup_bins() {
   strip $BIN/*
 }
 
+# GitHub Actions' Ubuntu runners have somewhat unusual naming conventions. For
+# instance, there are both ubuntu-24.04 and ubuntu-24.04-arm runners. Each of
+# them has a distinct architecture (the former is x86-64, and the latter is
+# ARM64), but only ubuntu-24.04-arm explicitly encodes its architecture in the
+# runner name.
+#
+# For the sake of producing what4-solvers binary distributions, we would like to
+# normalize all Ubuntu 24.04 runner names to just "ubuntu-24.04". (We attach the
+# architecture to the bindist name separately.)
+normalize_runner_name() {
+  ORIG_NAME="$1"
+  NORMALIZED_NAME=${ORIG_NAME%"-arm"}
+  echo "$NORMALIZED_NAME"
+}
+
 COMMAND="$1"
 shift
 
