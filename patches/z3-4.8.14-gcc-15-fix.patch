@@ -1,0 +1,50 @@
+diff --git a/src/math/lp/column_info.h b/src/math/lp/column_info.h
+index 1dc0c60c7..9cbeea66c 100644
+--- a/src/math/lp/column_info.h
++++ b/src/math/lp/column_info.h
+@@ -47,7 +47,7 @@ public:
+             m_lower_bound_is_strict == c.m_lower_bound_is_strict &&
+             m_upper_bound_is_set == c.m_upper_bound_is_set&&
+             m_upper_bound_is_strict == c.m_upper_bound_is_strict&&
+-            (!m_lower_bound_is_set || m_lower_bound == c.m_low_bound) &&
++            (!m_lower_bound_is_set || m_lower_bound == c.m_lower_bound) &&
+             (!m_upper_bound_is_set || m_upper_bound == c.m_upper_bound) &&
+             m_cost == c.m_cost &&
+             m_is_fixed == c.m_is_fixed &&
+diff --git a/src/math/lp/static_matrix.h b/src/math/lp/static_matrix.h
+index a42926853..9f4df5d26 100644
+--- a/src/math/lp/static_matrix.h
++++ b/src/math/lp/static_matrix.h
+@@ -80,7 +80,7 @@ public:
+         ref(static_matrix & m, unsigned row, unsigned col):m_matrix(m), m_row(row), m_col(col) {}
+         ref & operator=(T const & v) { m_matrix.set( m_row, m_col, v); return *this; }
+ 
+-        ref operator=(ref & v) { m_matrix.set(m_row, m_col, v.m_matrix.get(v.m_row, v.m_col)); return *this; }
++        ref operator=(ref & v) { m_matrix.set(m_row, m_col, v.m_matrix.get_elem(v.m_row, v.m_col)); return *this; }
+ 
+         operator T () const { return m_matrix.get_elem(m_row, m_col); }
+     };
+diff --git a/src/math/lp/static_matrix_def.h b/src/math/lp/static_matrix_def.h
+index 45d5d6d89..3381824e2 100644
+--- a/src/math/lp/static_matrix_def.h
++++ b/src/math/lp/static_matrix_def.h
+@@ -90,7 +90,7 @@ static_matrix<T, X>::static_matrix(static_matrix const &A, unsigned * /* basis *
+     init_row_columns(m, m);
+     for (; m-- > 0; ) 
+         for (auto & col : A.m_columns[m]) 
+-            set(col.var(), m, A.get_value_of_column_cell(col));
++            set(col.var(), m, A.get_column_cell(col));
+ }
+ 
+ template <typename T, typename X> void static_matrix<T, X>::clear() {
+diff --git a/src/math/lp/tail_matrix.h b/src/math/lp/tail_matrix.h
+index 2047e8c7e..98ec6a0ff 100644
+--- a/src/math/lp/tail_matrix.h
++++ b/src/math/lp/tail_matrix.h
+@@ -46,5 +46,6 @@ public:
+         T operator[](unsigned j) const { return m_A.get_elem(m_row, j);}
+     };
+     ref_row operator[](unsigned i) const { return ref_row(*this, i);}
++    T get_elem(unsigned i, unsigned j) const;
+ };
+ }

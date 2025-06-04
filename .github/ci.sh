@@ -225,6 +225,7 @@ build_z3-4.8.14() {
 build_z3() {
   Z3_BIN="z3-$1"
   pushd repos/$Z3_BIN
+  patch -p1 -i $PATCHES/$Z3_BIN-gcc-15-fix.patch
   mkdir build
   cd build
   if $IS_WIN ; then
