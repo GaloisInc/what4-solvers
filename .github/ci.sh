@@ -162,6 +162,8 @@ build_yices() {
   (cd repos && curl -o gmp.tar.lz -sL "https://ftp.gnu.org/gnu/gmp/gmp-$GMP_VERSION.tar.lz" && tar xf gmp.tar.lz)
 
   pushd "repos/gmp-$GMP_VERSION"
+  # Make gmp-6.3.0 build with GCC >=15
+  patch -p1 -i $PATCHES/gmp-gcc-15-fix.patch
   ./configure $CONFIGURE_FLAGS
   make -j4
   make install
