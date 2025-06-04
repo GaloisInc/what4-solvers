@@ -25,7 +25,7 @@ Built for the following operating systems:
 * Ubuntu 22.04 (x86-64)
 * Ubuntu 24.04 (x86-64)
 * Ubuntu 24.04 (arm64)
-* Windows Server 2019 (x86-64)
+* Windows Server 2022 (x86-64)
 
 All of the binary distributions are built from CI.
 
