@@ -44,6 +44,10 @@ build_abc() {
 
 build_bitwuzla() {
   pushd repos/bitwuzla
+  # Backport the changes from
+  # https://github.com/bitwuzla/bitwuzla/commit/d30ef4147eb2cbe21267702a1c0be60e01d353cd
+  # to make Bitwuzla build with GCC >=15
+  patch -p1 -i $PATCHES/bitwuzla-gcc-15-fix.patch
   ./configure.py
   cd build
   ninja -j4
@@ -158,6 +162,8 @@ build_yices() {
   (cd repos && curl -o gmp.tar.lz -sL "https://ftp.gnu.org/gnu/gmp/gmp-$GMP_VERSION.tar.lz" && tar xf gmp.tar.lz)
 
   pushd "repos/gmp-$GMP_VERSION"
+  # Make gmp-6.3.0 build with GCC >=15
+  patch -p1 -i $PATCHES/gmp-gcc-15-fix.patch
   ./configure $CONFIGURE_FLAGS
   make -j4
   make install
@@ -219,6 +225,7 @@ build_z3-4.8.14() {
 build_z3() {
   Z3_BIN="z3-$1"
   pushd repos/$Z3_BIN
+  patch -p1 -i $PATCHES/$Z3_BIN-gcc-15-fix.patch
   mkdir build
   cd build
   if $IS_WIN ; then

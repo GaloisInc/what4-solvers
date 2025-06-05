@@ -1,0 +1,12 @@
+diff --git a/include/bitwuzla/cpp/bitwuzla.h b/include/bitwuzla/cpp/bitwuzla.h
+index 92947362..63c4b4b2 100644
+--- a/include/bitwuzla/cpp/bitwuzla.h
++++ b/include/bitwuzla/cpp/bitwuzla.h
+@@ -14,6 +14,7 @@
+ #include <bitwuzla/enums.h>
+ #include <bitwuzla/option.h>
+ 
++#include <cstdint>
+ #include <functional>
+ #include <iostream>
+ #include <map>
