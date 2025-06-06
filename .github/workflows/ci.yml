@@ -106,6 +106,7 @@ jobs:
       # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
       # mention ARM twice (#63).
       - name: Normalize runner name
+        shell: bash
         run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v4
@@ -130,6 +131,7 @@ jobs:
       # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
       # mention ARM twice (#63).
       - name: Normalize runner name
+        shell: bash
         run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v4
