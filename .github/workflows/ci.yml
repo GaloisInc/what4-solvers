@@ -14,6 +14,10 @@ env:
   # solvers' builds. For now, we try using the recent CMake versions anyway.
   CMAKE_POLICY_VERSION_MINIMUM: "3.5"
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -27,7 +31,6 @@ jobs:
       # repo's test cases exceed the Windows API's default file path limit of
       # 260 characters.
       - name: Enable long file paths on Windows
-        shell: bash
         run: git config --system core.longpaths true
         if: runner.os == 'Windows'
 
@@ -93,7 +96,6 @@ jobs:
           java-version: '17'
 
       - name: build_solver (non-Windows)
-        shell: bash
         run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os != 'Windows'
 
@@ -106,7 +108,6 @@ jobs:
       # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
       # mention ARM twice (#63).
       - name: Normalize runner name
-        shell: bash
         run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v4
@@ -131,7 +132,6 @@ jobs:
       # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
       # mention ARM twice (#63).
       - name: Normalize runner name
-        shell: bash
         run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v4
@@ -179,7 +179,6 @@ jobs:
         # symlinks (see https://github.com/actions/upload-artifact/issues/93),
         # so we have no choice but to copy the entire binary.
       - name: Copy latest Z3 version
-        shell: bash
         run: cp bin/z3-${{ env.LATEST_Z3_VERSION }} bin/z3
 
       - uses: actions/upload-artifact@v4
