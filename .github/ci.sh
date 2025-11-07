@@ -82,7 +82,7 @@ build_cvc4() {
   patch -p1 -i $PATCHES/cvc4-antlr-check-aarch64.patch
   # Fix a pointer-to-integer cast in ANTLR
   patch -p1 -i $PATCHES/cvc4-antlr-pointer-to-integer-cast.patch
-  # Add missing #include statements that macos-14's version of Clang++ requires.
+  # Add missing #include statements that Clang++ requires in macos-14 or later.
   patch -p1 -i $PATCHES/cvc4-fix-missing-includes.patch
   # Backport a fix for https://github.com/cvc5/cvc5/issues/10591, which causes
   # bash-5.2 to spuriously replace uses of ampersands (&) in text replacement.
