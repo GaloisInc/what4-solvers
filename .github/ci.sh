@@ -155,6 +155,23 @@ build_yices() {
     export CONFIGURE_FLAGS="--prefix=$TOP/install-root"
   fi
 
+  # On intel MacOS 15.x, gmp-6.3.0 started building broken libs full
+  # of text relocations. Force --with-pic to stop this. Otherwise, gmp
+  # succeeds, but the resulting library doesn't work. Then libpoly's
+  # configure script detects the broken gmp but instead of itself
+  # failing, blithely continues and produces a nonfunctional libpoly,
+  # which then causes the yices build to fail in turn.
+  #
+  # It isn't clear if this has always been broken in gmp (and broke
+  # with the newer MacOS) or there's something bust in gmp's configury
+  # that causes it to do the wrong thing on 15.x. Either way, though,
+  # it's worth checking if this is no longer needed at the next gmp
+  # update.
+  case "$RUNNER_OS.$RUNNER_ARCH" in
+      macOS.X86|macOS.X64) GMP_CONFIGURE_FLAGS=--with-pic;;
+      *) GMP_CONFIGURE_FLAGS=;;
+  esac
+
   mkdir -p install-root/include
   mkdir -p install-root/lib
 
@@ -164,7 +181,7 @@ build_yices() {
   pushd "repos/gmp-$GMP_VERSION"
   # Make gmp-6.3.0 build with GCC >=15
   patch -p1 -i $PATCHES/gmp-gcc-15-fix.patch
-  ./configure $CONFIGURE_FLAGS
+  ./configure $CONFIGURE_FLAGS $GMP_CONFIGURE_FLAGS
   make -j4
   make install
   popd
