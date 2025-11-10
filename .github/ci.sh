@@ -167,8 +167,13 @@ build_yices() {
   # that causes it to do the wrong thing on 15.x. Either way, though,
   # it's worth checking if this is no longer needed at the next gmp
   # update.
-  case "$RUNNER_OS.$RUNNER_ARCH" in
-      macOS.X86|macOS.X64) GMP_CONFIGURE_FLAGS=--with-pic;;
+  #
+  # To make the set of configure flags slightly more consistent, we always use
+  # --with-pic on macOS, both on x86-64 and AArch64. This also matches how
+  # Homebrew configures gmp (see
+  # https://github.com/Homebrew/homebrew-core/blob/6a18913f00b93bea2d52a0371b38dc9caacf1eb7/Formula/g/gmp.rb#L49-L50).
+  case "$RUNNER_OS" in
+      macOS) GMP_CONFIGURE_FLAGS=--with-pic;;
       *) GMP_CONFIGURE_FLAGS=;;
   esac
 
