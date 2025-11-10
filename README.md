@@ -13,7 +13,7 @@ Currently, `what4-solvers` offers the following solver versions:
 * Bitwuzla - [0.7.0](https://github.com/bitwuzla/bitwuzla/tree/3cf7c35b97c60016883cc19c4d6a9344a989a4d6)
 * Boolector - [3.2.2](https://github.com/Boolector/boolector/tree/e7aba964f69cd52dbe509e46e818a4411b316cd3)
 * CVC4 - [1.8](https://github.com/CVC4/CVC4-archived/tree/5247901077efbc7b9016ba35fded7a6ab459a379)
-* CVC5 - [1.1.1](https://github.com/cvc5/cvc5/tree/ebfdf84d5698eeb83e0fa4e45101fe4a8f4543eb)
+* CVC5 - [1.3.1](https://github.com/cvc5/cvc5/tree/ea1b484fa54bfe56c0f8b3ac90a6e3e2f46441e7)
 * Yices - [2.6.5](https://github.com/SRI-CSL/yices2/tree/8e6297e233299631147f98659224c3118fc6a215)
 * Z3 - [4.8.8](https://github.com/Z3Prover/z3/tree/ad55a1f1c617a7f0c3dd735c0780fc758424c7f1) and
        [4.8.14](https://github.com/Z3Prover/z3/tree/df8f9d7dcb8b9f9b3de1072017b7c2b7f63f0af8)

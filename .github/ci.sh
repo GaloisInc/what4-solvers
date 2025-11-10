@@ -119,12 +119,6 @@ build_cvc4() {
 build_cvc5() {
   pushd repos/cvc5
   if $IS_WIN ; then
-    # GitHub Actions comes preinstalled with Chocolatey's mingw package, which
-    # includes the ld.gold linker. This does not play nicely with MSYS2's
-    # mingw-w64-x86_64-gcc, so we must prevent CMake from using ld.gold.
-    # (Ideally, there would be a CMake configuration option to accomplish this,
-    # but I have not found one.)
-    patch -p1 -i $PATCHES/cvc5-no-ld-gold.patch
     # Why do we manually override Python_EXECUTABLE below? GitHub Actions comes
     # with multiple versions of Python pre-installed, and for some bizarre
     # reason, CMake always tries to pick the latest version, even if it is not
