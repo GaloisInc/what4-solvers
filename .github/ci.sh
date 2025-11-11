@@ -82,7 +82,7 @@ build_cvc4() {
   patch -p1 -i $PATCHES/cvc4-antlr-check-aarch64.patch
   # Fix a pointer-to-integer cast in ANTLR
   patch -p1 -i $PATCHES/cvc4-antlr-pointer-to-integer-cast.patch
-  # Add missing #include statements that macos-14's version of Clang++ requires.
+  # Add missing #include statements that Clang++ requires in macos-14 or later.
   patch -p1 -i $PATCHES/cvc4-fix-missing-includes.patch
   # Backport a fix for https://github.com/cvc5/cvc5/issues/10591, which causes
   # bash-5.2 to spuriously replace uses of ampersands (&) in text replacement.
@@ -119,12 +119,6 @@ build_cvc4() {
 build_cvc5() {
   pushd repos/cvc5
   if $IS_WIN ; then
-    # GitHub Actions comes preinstalled with Chocolatey's mingw package, which
-    # includes the ld.gold linker. This does not play nicely with MSYS2's
-    # mingw-w64-x86_64-gcc, so we must prevent CMake from using ld.gold.
-    # (Ideally, there would be a CMake configuration option to accomplish this,
-    # but I have not found one.)
-    patch -p1 -i $PATCHES/cvc5-no-ld-gold.patch
     # Why do we manually override Python_EXECUTABLE below? GitHub Actions comes
     # with multiple versions of Python pre-installed, and for some bizarre
     # reason, CMake always tries to pick the latest version, even if it is not
@@ -155,6 +149,28 @@ build_yices() {
     export CONFIGURE_FLAGS="--prefix=$TOP/install-root"
   fi
 
+  # On intel MacOS 15.x, gmp-6.3.0 started building broken libs full
+  # of text relocations. Force --with-pic to stop this. Otherwise, gmp
+  # succeeds, but the resulting library doesn't work. Then libpoly's
+  # configure script detects the broken gmp but instead of itself
+  # failing, blithely continues and produces a nonfunctional libpoly,
+  # which then causes the yices build to fail in turn.
+  #
+  # It isn't clear if this has always been broken in gmp (and broke
+  # with the newer MacOS) or there's something bust in gmp's configury
+  # that causes it to do the wrong thing on 15.x. Either way, though,
+  # it's worth checking if this is no longer needed at the next gmp
+  # update.
+  #
+  # To make the set of configure flags slightly more consistent, we always use
+  # --with-pic on macOS, both on x86-64 and AArch64. This also matches how
+  # Homebrew configures gmp (see
+  # https://github.com/Homebrew/homebrew-core/blob/6a18913f00b93bea2d52a0371b38dc9caacf1eb7/Formula/g/gmp.rb#L49-L50).
+  case "$RUNNER_OS" in
+      macOS) GMP_CONFIGURE_FLAGS=--with-pic;;
+      *) GMP_CONFIGURE_FLAGS=;;
+  esac
+
   mkdir -p install-root/include
   mkdir -p install-root/lib
 
@@ -164,7 +180,7 @@ build_yices() {
   pushd "repos/gmp-$GMP_VERSION"
   # Make gmp-6.3.0 build with GCC >=15
   patch -p1 -i $PATCHES/gmp-gcc-15-fix.patch
-  ./configure $CONFIGURE_FLAGS
+  ./configure $CONFIGURE_FLAGS $GMP_CONFIGURE_FLAGS
   make -j4
   make install
   popd
