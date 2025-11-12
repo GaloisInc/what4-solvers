@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, ubuntu-22.04, macos-15, macos-15-intel, windows-2022]
+        os: [ubuntu-24.04, ubuntu-22.04-arm, ubuntu-24.04-arm, ubuntu-22.04, macos-15, macos-15-intel, windows-2022]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
       # This is necessary to clone the yices2 repo on Windows, as some of the
@@ -121,7 +121,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, ubuntu-22.04, macos-15, macos-15-intel, windows-2022]
+        os: [ubuntu-24.04, ubuntu-22.04-arm, ubuntu-24.04-arm, ubuntu-22.04, macos-15, macos-15-intel, windows-2022]
     steps:
       - uses: actions/checkout@v4
         with:
