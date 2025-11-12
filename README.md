@@ -20,12 +20,9 @@ Currently, `what4-solvers` offers the following solver versions:
 
 Built for the following operating systems:
 
-* macOS Sequoia 15 (arm64)
-* macOS Sequoia 15 (x86-64)
-* Ubuntu 22.04 (x86-64)
-* Ubuntu 24.04 (x86-64)
-* Ubuntu 22.04 (arm64)
-* Ubuntu 24.04 (arm64)
+* macOS Sequoia 15 (arm64 and x86-64)
+* Ubuntu 22.04 (arm64 and x86-64)
+* Ubuntu 24.04 (arm64 and x86-64)
 * Windows Server 2022 (x86-64)
 
 All of the binary distributions are built from CI.
