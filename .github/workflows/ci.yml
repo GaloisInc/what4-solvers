@@ -104,6 +104,15 @@ jobs:
         run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os == 'Windows'
 
+      - name: test_solver (non-Windows)
+        run: .github/ci.sh test_solver ${{ matrix.solver }}
+        if: runner.os != 'Windows'
+
+      - name: test_solver (Windows)
+        shell: msys2 {0}
+        run: .github/ci.sh test_solver ${{ matrix.solver }}
+        if: runner.os == 'Windows'
+
       # Needed to normalize both "ubuntu-24.04" and "ubuntu-24.04-arm" to
       # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
       # mention ARM twice (#63).
@@ -115,76 +124,159 @@ jobs:
           path: bin
           name: ${{ env.OS_NAME }}-${{ runner.arch }}-${{ matrix.solver }}-bin
 
-  package_solvers:
+  build-ubi9:
     runs-on: ${{ matrix.os }}
-    needs: [build]
+    container:
+      image: redhat/ubi9:latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04-arm, ubuntu-24.04-arm, ubuntu-22.04, macos-15, macos-15-intel, windows-2022]
+        os: [ubuntu-24.04] #, ubuntu-24.04-arm]
+        solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
+    steps:
+
+      - name: Install dependencies (Red Hat UBI 9)
+        run: |
+          # Install EPEL for additional packages
+          dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+
+          # Install base build tools (including glibc-static and libstdc++-static for static linking)
+          # This includes all dependencies needed across all solvers
+          dnf install -y gcc gcc-c++ make git patch tar unzip automake autoconf cmake ninja-build \
+            glibc-static libstdc++-static gmp-devel
+
+          # Install additional dependencies from EPEL
+          dnf install -y --enablerepo=epel lzip
+
+      - name: Install additional dependencies (Red Hat UBI 9)
+        run: |
+          # Build and install gperf from source (not available in UBI 9 repos)
+          # Required by: Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
+          curl -sL http://ftp.gnu.org/gnu/gperf/gperf-3.1.tar.gz | tar xz
+          cd gperf-3.1 && ./configure && make -j4 && make install && cd .. && rm -rf gperf-3.1
+
+          # Install Python 3 and Java
+          # Python: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
+          # Java: Required by CVC4, CVC5 (for ANTLR)
+          dnf install -y python3 python3-pip java-17-openjdk-devel
+
+      - name: Install Python libraries
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install meson pyparsing toml tomli
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: build_solver
+        run: .github/ci.sh build_${{ matrix.solver }}
+
+      - name: test_solver
+        run: .github/ci.sh test_solver ${{ matrix.solver }}
+
+      - name: Set OS name
+        run: echo "OS_NAME=redhat-ubi9" >> $GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        with:
+          path: bin
+          name: ${{ env.OS_NAME }}-${{ runner.arch }}-${{ matrix.solver }}-bin
+
+  package_solvers:
+    runs-on: ubuntu-latest
+    needs: [build, build-ubi9]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ubuntu packages
+          - os: ubuntu-24.04
+            arch: X64
+          - os: ubuntu-24.04
+            arch: ARM64
+          - os: ubuntu-22.04
+            arch: X64
+          - os: ubuntu-22.04
+            arch: ARM64
+          # macOS packages
+          - os: macos-15
+            arch: ARM64
+          - os: macos-15
+            arch: intel-X64
+          # Windows packages
+          - os: windows-2022
+            arch: X64
+          # RedHat UBI9 packages
+          - os: redhat-ubi9
+            arch: X64
+#          - os: redhat-ubi9
+#            arch: ARM64
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: false
           fetch-depth: 1
 
-      # Needed to normalize both "ubuntu-24.04" and "ubuntu-24.04-arm" to
-      # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
-      # mention ARM twice (#63).
-      - name: Normalize runner name
-        run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
-
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ env.OS_NAME }}-${{ runner.arch }}-abc-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-abc-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ env.OS_NAME }}-${{ runner.arch }}-bitwuzla-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-bitwuzla-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ env.OS_NAME }}-${{ runner.arch }}-boolector-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-boolector-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ env.OS_NAME }}-${{ runner.arch }}-cvc4-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-cvc4-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ env.OS_NAME }}-${{ runner.arch }}-cvc5-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-cvc5-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ env.OS_NAME }}-${{ runner.arch }}-yices-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-yices-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ env.OS_NAME }}-${{ runner.arch }}-z3-4.8.8-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.8-bin"
           path: bin
 
       - uses: actions/download-artifact@v4
         with:
-          name: "${{ env.OS_NAME }}-${{ runner.arch }}-z3-4.8.14-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.14-bin"
           path: bin
 
         # Make a copy of z3-<LATEST_Z3_VERSION> named z3 for ease of use.
         # Unfortunately, GitHub Actions' upload-artifact action doesn't support
         # symlinks (see https://github.com/actions/upload-artifact/issues/93),
         # so we have no choice but to copy the entire binary.
+        #
+        # The Windows binaries have .exe suffix, thus we need to account for that
+        # in the conditional copy
       - name: Copy latest Z3 version
-        run: cp bin/z3-${{ env.LATEST_Z3_VERSION }} bin/z3
+        run: |
+         # Note that we are using the matrix.os which is `windows-2022` rather than runner OS
+         # which would be `Windows`
+         [ "${{ matrix.os }}" = "windows-2022" ] && cp bin/z3-${{ env.LATEST_Z3_VERSION }}.exe bin/z3.exe || \
+          cp bin/z3-${{ env.LATEST_Z3_VERSION }} bin/z3
 
       - uses: actions/upload-artifact@v4
         with:
           path: bin
-          name: ${{ env.OS_NAME }}-${{ runner.arch }}-bin
+          name: ${{ matrix.os }}-${{ matrix.arch }}-bin
 
   # Indicates sufficient CI success for the purposes of mergify merging the pull
   # request, see .github/mergify.yml. This is done instead of enumerating each
@@ -194,6 +286,6 @@ jobs:
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
     runs-on: ubuntu-24.04
-    needs: [build]
+    needs: [build, build-ubi9]
     steps:
       - run: "true"
