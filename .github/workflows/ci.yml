@@ -19,12 +19,27 @@ defaults:
     shell: bash
 
 jobs:
-  build:
+  # This job captures native runners that cannot be neatly containerized
+  # There are docker containers for MacOS and Windows, but maybe they don't work that well?
+  # build-native:
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     os: [macos-15, macos-15-intel, windows-2022]
+  #     solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
+
+  build-container:
     runs-on: ${{ matrix.os }}
+    container:
+      image: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04-arm, ubuntu-24.04-arm, ubuntu-22.04, macos-15, macos-15-intel, windows-2022]
+        # the base runner OS - we use the latest ubuntu, both in x86 and arm64
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
+        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
+        # each will be built in both arm and x86 version
+        container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest, ]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
       # This is necessary to clone the yices2 repo on Windows, as some of the
