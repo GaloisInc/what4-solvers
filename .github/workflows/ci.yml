@@ -264,14 +264,13 @@ jobs:
         # symlinks (see https://github.com/actions/upload-artifact/issues/93),
         # so we have no choice but to copy the entire binary.
         #
-        # The Windows binaries have .exe suffix, thus we need to account for that
-        # in the conditional copy
+        # The Windows binaries have an .exe suffix, thus we need to account for that
+        # in the conditional copy. Note that we are using the `matrix.os`,
+        # which is `windows-2022`, rather than the runner OS, which would be `Windows`
       - name: Copy latest Z3 version
         run: |
-         # Note that we are using the matrix.os which is `windows-2022` rather than runner OS
-         # which would be `Windows`
-         [ "${{ matrix.os }}" = "windows-2022" ] && cp bin/z3-${{ env.LATEST_Z3_VERSION }}.exe bin/z3.exe || \
-          cp bin/z3-${{ env.LATEST_Z3_VERSION }} bin/z3
+         [[ "${{ matrix.os }}" == "windows-2022" ]] && EXE=".exe" || EXE=""
+         cp bin/z3-${{ env.LATEST_Z3_VERSION }}$EXE bin/z3$EXE
 
       - uses: actions/upload-artifact@v4
         with:
