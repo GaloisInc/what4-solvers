@@ -131,7 +131,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04] #, ubuntu-24.04-arm]
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
 
@@ -211,8 +211,8 @@ jobs:
           # RedHat UBI9 packages
           - os: redhat-ubi9
             arch: X64
-#          - os: redhat-ubi9
-#            arch: ARM64
+          - os: redhat-ubi9
+            arch: ARM64
     steps:
       - uses: actions/checkout@v4
         with:
