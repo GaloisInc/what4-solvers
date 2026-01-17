@@ -104,7 +104,6 @@ build_abc() {
     fi
   fi
   cp abc$EXT $BIN
-  (cd $BIN && deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < $PROBLEM)
   popd
   cleanup_bins
 }
@@ -129,7 +128,6 @@ build_bitwuzla() {
   cd build
   ninja -j4
   cp src/main/bitwuzla$EXT $BIN
-  (cd $BIN && ./bitwuzla$EXT --version && deps bitwuzla$EXT && ./bitwuzla$EXT $PROBLEM)
   popd
   cleanup_bins
 }
@@ -148,7 +146,6 @@ build_boolector() {
   cd build
   ninja -j4
   cp bin/boolector$EXT $BIN
-  (cd $BIN && ./boolector$EXT --version && deps boolector$EXT && ./boolector$EXT $PROBLEM --no-exit-codes)
   popd
   cleanup_bins
 }
@@ -188,7 +185,6 @@ build_cvc4() {
   cd build
   make -j4
   cp bin/cvc4$EXT $BIN
-  (cd $BIN && ./cvc4$EXT --version && deps cvc4$EXT && ./cvc4$EXT $PROBLEM)
   popd
   cleanup_bins
 }
@@ -218,7 +214,6 @@ build_cvc5() {
   cd build
   make -j4
   cp bin/cvc5$EXT $BIN
-  (cd $BIN && ./cvc5$EXT --version && deps cvc5$EXT && ./cvc5$EXT $PROBLEM)
   popd
   cleanup_bins
 }
@@ -285,7 +280,6 @@ build_yices() {
   make -j4 static-bin
   cp build/*/static_bin/* $BIN
   if [ -e $BIN/yices_smt2$EXT ] ; then cp $BIN/yices_smt2$EXT $BIN/yices-smt2$EXT ; else true ; fi
-  (cd $BIN && ./yices-smt2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT $PROBLEM)
   popd
   cleanup_bins
 }
@@ -312,7 +306,6 @@ build_z3() {
   ninja -j4
   cp z3$EXT $BIN/$Z3_BIN$EXT
   popd
-  (cd $BIN && ./$Z3_BIN$EXT --version && deps $Z3_BIN$EXT && ./$Z3_BIN$EXT $PROBLEM)
   cleanup_bins
 }
 
@@ -332,17 +325,17 @@ test_solver() {
   # Run the solver and capture output
   case "$SOLVER" in
     abc)
-      RESULT=$(./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
+      RESULT=$(deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
       ;;
     boolector)
-      RESULT=$(./boolector$EXT "$PROBLEM" --no-exit-codes)
+      RESULT=$(./boolector$EXT --version && deps boolector$EXT && ./boolector$EXT "$PROBLEM" --no-exit-codes)
       ;;
     yices)
-      RESULT=$(./yices-smt2$EXT "$PROBLEM")
+      RESULT=$(./yices-smt2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT "$PROBLEM")
       ;;
     *)
       # Most solvers use the same invocation pattern
-      RESULT=$(./$SOLVER$EXT "$PROBLEM")
+      RESULT=$(./$SOLVER$EXT --version && deps $SOLVER$EXT && ./$SOLVER$EXT "$PROBLEM")
       ;;
   esac
 
