@@ -34,7 +34,7 @@ jobs:
         run: git config --system core.longpaths true
         if: runner.os == 'Windows'
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -165,7 +165,7 @@ jobs:
           python3 -m pip install --upgrade pip
           pip3 install meson pyparsing toml tomli
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
@@ -214,47 +214,47 @@ jobs:
           - os: redhat-ubi9
             arch: ARM64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: false
           fetch-depth: 1
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-abc-bin"
           path: bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-bitwuzla-bin"
           path: bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-boolector-bin"
           path: bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-cvc4-bin"
           path: bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-cvc5-bin"
           path: bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-yices-bin"
           path: bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.8-bin"
           path: bin
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.14-bin"
           path: bin
