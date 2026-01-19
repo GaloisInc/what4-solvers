@@ -269,7 +269,7 @@ jobs:
         # which is `windows-2022`, rather than the runner OS, which would be `Windows`
       - name: Copy latest Z3 version
         run: |
-         [[ "${{ matrix.os }}" == "windows-2022" ]] && EXE=".exe" || EXE=""
+         [[ "${{ matrix.os }}" == *windows* ]] && EXE=".exe" || EXE=""
          cp bin/z3-${{ env.LATEST_Z3_VERSION }}$EXE bin/z3$EXE
 
       - uses: actions/upload-artifact@v4
