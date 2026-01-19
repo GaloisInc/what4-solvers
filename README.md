@@ -34,7 +34,7 @@ All of the binary distributions are built from CI.
 
 We attempt to offer somewhat broad coverage of different Linux versions.
 To that end, we build each solver on the two most recent Ubuntu LTS
-releases, as well as the latest RedHat linux. This ensures relatively
+releases, as well as the latest RedHat Linux. This ensures relatively
 complete coverage of different shared library dependencies (e.g., different `glibc` versions).
 
 ### Why offer multiple Z3 versions?
