@@ -21,6 +21,7 @@ Currently, `what4-solvers` offers the following solver versions:
 Built for the following operating systems:
 
 * macOS Sequoia 15 (arm64 and x86-64)
+* RedHat UBI9 (arm64 and x86-64)
 * Ubuntu 22.04 (arm64 and x86-64)
 * Ubuntu 24.04 (arm64 and x86-64)
 * Windows Server 2022 (x86-64)
@@ -33,8 +34,8 @@ All of the binary distributions are built from CI.
 
 We attempt to offer somewhat broad coverage of different Linux versions.
 To that end, we build each solver on the two most recent Ubuntu LTS
-releases. This ensures relatively complete coverage of different shared library
-dependencies (e.g., different `glibc` versions).
+releases, as well as the latest RedHat Linux. This ensures relatively
+complete coverage of different shared library dependencies (e.g., different `glibc` versions).
 
 ### Why offer multiple Z3 versions?
 

@@ -2,12 +2,33 @@
 set -Eeuxo pipefail
 
 [[ "$RUNNER_OS" == 'Windows' ]] && IS_WIN=true || IS_WIN=false
+[[ "$RUNNER_OS" == 'Linux' ]] && IS_LINUX=true || IS_LINUX=false
 TOP=$(pwd)
 BIN=$TOP/bin
 EXT=""
 PATCHES=$TOP/patches
 PROBLEM=$TOP/problems/mult_dist.smt2
 $IS_WIN && EXT=".exe"
+
+# Detect Linux distribution
+IS_UBUNTU=false
+IS_REDHAT=false
+if $IS_LINUX; then
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    case "$ID" in
+      ubuntu)
+        IS_UBUNTU=true
+        ;;
+      rhel)
+        IS_REDHAT=true
+        ;;
+      *)
+        ;;
+    esac
+  fi
+fi
+
 mkdir -p "$BIN"
 
 deps() {
@@ -16,6 +37,43 @@ deps() {
       macOS) otool -L $1 || true ;;
       Windows) ldd $1 || true ;;
     esac
+}
+
+# Build static GMP library from source
+# Used by bitwuzla and yices when static GMP is not available
+ensure_static_gmp() {
+  if [ ! -f "$TOP/install-root/lib/libgmp.a" ]; then
+    echo "Building static GMP from source..."
+    mkdir -p install-root/include
+    mkdir -p install-root/lib
+
+    GMP_VERSION="6.3.0"
+
+    # Download and extract GMP if not already present
+    if [ ! -d "repos/gmp-$GMP_VERSION" ]; then
+      (cd repos && curl -o gmp.tar.lz -sL "https://ftp.gnu.org/gnu/gmp/gmp-$GMP_VERSION.tar.lz" && tar xf gmp.tar.lz)
+    fi
+
+    pushd "repos/gmp-$GMP_VERSION"
+
+    # Make gmp-6.3.0 build with GCC >=15
+    patch -p1 -i $PATCHES/gmp-gcc-15-fix.patch
+
+    # On intel MacOS 15.x, gmp-6.3.0 started building broken libs full
+    # of text relocations. Force --with-pic to stop this. Otherwise, gmp
+    # succeeds, but the resulting library doesn't work.
+    # To make the set of configure flags slightly more consistent, we always use
+    # --with-pic on macOS, both on x86-64 and AArch64.
+    case "$RUNNER_OS" in
+      macOS) GMP_CONFIGURE_FLAGS=--with-pic;;
+      *) GMP_CONFIGURE_FLAGS=;;
+    esac
+
+    ./configure --prefix=$TOP/install-root --enable-static --disable-shared --enable-cxx $GMP_CONFIGURE_FLAGS
+    make -j4
+    make install
+    popd
+  fi
 }
 
 build_abc() {
@@ -34,15 +92,33 @@ build_abc() {
     patch -p1 -i $PATCHES/abc-intptr_t.patch
     make OPTFLAGS="-O2" ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64 -DWIN32_NO_DLL" CFLAGS="-DNT64 -DWIN32_NO_DLL" LDFLAGS="-static" -j4 abc
   else
-    make OPTFLAGS="-O2" -j4 abc
+    # Check if readline is available
+    # On RedHat/UBI9 and some other distributions, readline-devel is not available
+    # so we build without readline support for better compatibility
+    if $IS_REDHAT || [ ! -f /usr/include/readline/readline.h ]; then
+      echo "Building ABC without readline (not available or RedHat-based system)"
+      make OPTFLAGS="-O2" ABC_USE_NO_READLINE=1 -j4 abc
+    else
+      echo "Building ABC with readline support"
+      make OPTFLAGS="-O2" -j4 abc
+    fi
   fi
   cp abc$EXT $BIN
-  (cd $BIN && deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < $PROBLEM)
   popd
   cleanup_bins
 }
 
 build_bitwuzla() {
+  # Always build static GMP for bitwuzla
+  # Bitwuzla requires gmpxx.h (C++ bindings) which are not always available
+  # in system GMP packages (e.g., macOS Homebrew GMP, RedHat UBI9)
+  ensure_static_gmp
+
+  # Set environment variables to use our static GMP
+  export PKG_CONFIG_PATH="$TOP/install-root/lib/pkgconfig"
+  export CFLAGS="-I$TOP/install-root/include"
+  export LDFLAGS="-L$TOP/install-root/lib"
+
   pushd repos/bitwuzla
   # Backport the changes from
   # https://github.com/bitwuzla/bitwuzla/commit/d30ef4147eb2cbe21267702a1c0be60e01d353cd
@@ -52,7 +128,6 @@ build_bitwuzla() {
   cd build
   ninja -j4
   cp src/main/bitwuzla$EXT $BIN
-  (cd $BIN && ./bitwuzla$EXT --version && deps bitwuzla$EXT && ./bitwuzla$EXT $PROBLEM)
   popd
   cleanup_bins
 }
@@ -71,7 +146,6 @@ build_boolector() {
   cd build
   ninja -j4
   cp bin/boolector$EXT $BIN
-  (cd $BIN && ./boolector$EXT --version && deps boolector$EXT && ./boolector$EXT $PROBLEM --no-exit-codes)
   popd
   cleanup_bins
 }
@@ -111,26 +185,35 @@ build_cvc4() {
   cd build
   make -j4
   cp bin/cvc4$EXT $BIN
-  (cd $BIN && ./cvc4$EXT --version && deps cvc4$EXT && ./cvc4$EXT $PROBLEM)
   popd
   cleanup_bins
 }
 
 build_cvc5() {
   pushd repos/cvc5
+
+  # Detect Python executable
+  # In GitHub Actions, use pythonLocation if available
+  # Otherwise, find python3 or python in PATH
+  if [ -n "${pythonLocation:-}" ]; then
+  PYTHON_EXE="${pythonLocation}/python${EXT}"
+  else
+  PYTHON_EXE=$(which python3 2>/dev/null || which python 2>/dev/null)
+  fi
+  echo "Using Python: $PYTHON_EXE"
+
   if $IS_WIN ; then
     # Why do we manually override Python_EXECUTABLE below? GitHub Actions comes
     # with multiple versions of Python pre-installed, and for some bizarre
     # reason, CMake always tries to pick the latest version, even if it is not
     # on the PATH. Manually overriding this option avoids this oddity.
-    ./configure.sh -DPython_EXECUTABLE=${pythonLocation}/python${EXT} --static --static-binary --auto-download --win64-native production
+    ./configure.sh -DPython_EXECUTABLE=$PYTHON_EXE --static --static-binary --auto-download --win64-native production
   else
-    ./configure.sh -DPython_EXECUTABLE=${pythonLocation}/python${EXT} --static --no-static-binary --auto-download production
+    ./configure.sh -DPython_EXECUTABLE=$PYTHON_EXE --static --no-static-binary --auto-download production
   fi
   cd build
   make -j4
   cp bin/cvc5$EXT $BIN
-  (cd $BIN && ./cvc5$EXT --version && deps cvc5$EXT && ./cvc5$EXT $PROBLEM)
   popd
   cleanup_bins
 }
@@ -140,50 +223,22 @@ build_yices() {
     export CC=x86_64-w64-mingw32-gcc
     export CXX=x86_64-w64-mingw32-g++
   fi
-  export CFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
-  export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
-  export LDFLAGS="-L$TOP/install-root/lib"
   if $IS_WIN ; then
     export CONFIGURE_FLAGS="--build=x86_64-w64-mingw32 --prefix=$TOP/install-root"
   else
     export CONFIGURE_FLAGS="--prefix=$TOP/install-root"
   fi
 
-  # On intel MacOS 15.x, gmp-6.3.0 started building broken libs full
-  # of text relocations. Force --with-pic to stop this. Otherwise, gmp
-  # succeeds, but the resulting library doesn't work. Then libpoly's
-  # configure script detects the broken gmp but instead of itself
-  # failing, blithely continues and produces a nonfunctional libpoly,
-  # which then causes the yices build to fail in turn.
-  #
-  # It isn't clear if this has always been broken in gmp (and broke
-  # with the newer MacOS) or there's something bust in gmp's configury
-  # that causes it to do the wrong thing on 15.x. Either way, though,
-  # it's worth checking if this is no longer needed at the next gmp
-  # update.
-  #
-  # To make the set of configure flags slightly more consistent, we always use
-  # --with-pic on macOS, both on x86-64 and AArch64. This also matches how
-  # Homebrew configures gmp (see
-  # https://github.com/Homebrew/homebrew-core/blob/6a18913f00b93bea2d52a0371b38dc9caacf1eb7/Formula/g/gmp.rb#L49-L50).
-  case "$RUNNER_OS" in
-      macOS) GMP_CONFIGURE_FLAGS=--with-pic;;
-      *) GMP_CONFIGURE_FLAGS=;;
-  esac
-
   mkdir -p install-root/include
   mkdir -p install-root/lib
 
-  GMP_VERSION="6.3.0"
-  (cd repos && curl -o gmp.tar.lz -sL "https://ftp.gnu.org/gnu/gmp/gmp-$GMP_VERSION.tar.lz" && tar xf gmp.tar.lz)
+  # Build static GMP using shared function
+  ensure_static_gmp
 
-  pushd "repos/gmp-$GMP_VERSION"
-  # Make gmp-6.3.0 build with GCC >=15
-  patch -p1 -i $PATCHES/gmp-gcc-15-fix.patch
-  ./configure $CONFIGURE_FLAGS $GMP_CONFIGURE_FLAGS
-  make -j4
-  make install
-  popd
+  # Set up environment for yices build
+  export CFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
+  export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
+  export LDFLAGS="-L$TOP/install-root/lib"
 
   pushd repos/cudd
   case "$RUNNER_OS" in
@@ -225,7 +280,6 @@ build_yices() {
   make -j4 static-bin
   cp build/*/static_bin/* $BIN
   if [ -e $BIN/yices_smt2$EXT ] ; then cp $BIN/yices_smt2$EXT $BIN/yices-smt2$EXT ; else true ; fi
-  (cd $BIN && ./yices-smt2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT $PROBLEM)
   popd
   cleanup_bins
 }
@@ -252,13 +306,47 @@ build_z3() {
   ninja -j4
   cp z3$EXT $BIN/$Z3_BIN$EXT
   popd
-  (cd $BIN && ./$Z3_BIN$EXT --version && deps $Z3_BIN$EXT && ./$Z3_BIN$EXT $PROBLEM)
   cleanup_bins
 }
 
 cleanup_bins() {
   $IS_WIN || chmod +x $BIN/*
   strip $BIN/*
+}
+
+# Test a solver by running it on the test problem
+# Usage: test_solver <solver_name>
+test_solver() {
+  SOLVER="$1"
+  echo "Testing $SOLVER with $PROBLEM..."
+
+  cd "$BIN"
+
+  # Run the solver and capture output
+  case "$SOLVER" in
+    abc)
+      RESULT=$(deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
+      ;;
+    boolector)
+      RESULT=$(./boolector$EXT --version && deps boolector$EXT && ./boolector$EXT "$PROBLEM" --no-exit-codes)
+      ;;
+    yices)
+      RESULT=$(./yices-smt2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT "$PROBLEM")
+      ;;
+    *)
+      # Most solvers use the same invocation pattern
+      RESULT=$(./$SOLVER$EXT --version && deps $SOLVER$EXT && ./$SOLVER$EXT "$PROBLEM")
+      ;;
+  esac
+
+  # Check if the result contains "unsat"
+  if echo "$RESULT" | grep -q "unsat"; then
+    echo "✓ Test passed for $SOLVER (returned unsat)"
+  else
+    echo "✗ Test failed for $SOLVER: expected 'unsat', got:"
+    echo "$RESULT"
+    return 1
+  fi
 }
 
 # GitHub Actions' Ubuntu runners have somewhat unusual naming conventions. For
