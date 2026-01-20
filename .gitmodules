@@ -1,9 +1,6 @@
 [submodule "repos/abc"]
 	path = repos/abc
 	url = https://github.com/berkeley-abc/abc
-[submodule "repos/boolector"]
-	path = repos/boolector
-	url = https://github.com/Boolector/boolector
 [submodule "deps/libpoly"]
 	path = repos/libpoly
 	url = https://github.com/SRI-CSL/libpoly
