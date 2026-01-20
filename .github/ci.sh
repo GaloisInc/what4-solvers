@@ -132,24 +132,6 @@ build_bitwuzla() {
   cleanup_bins
 }
 
-build_boolector() {
-  pushd repos/boolector
-  if $IS_WIN ; then
-    export CMAKE_OPTS="-DIS_WINDOWS_BUILD=1"
-    # Backport https://github.com/Boolector/boolector/pull/181
-    patch -p1 -i $PATCHES/boolector-mingw64.patch
-  fi
-  ./contrib/setup-lingeling.sh
-  ./contrib/setup-cadical.sh
-  ./contrib/setup-btor2tools.sh
-  ./configure.sh --ninja
-  cd build
-  ninja -j4
-  cp bin/boolector$EXT $BIN
-  popd
-  cleanup_bins
-}
-
 build_cvc4() {
   pushd repos/CVC4-archived
   # Make the get-antlr script work on both x86-64 and AArch64
@@ -326,9 +308,6 @@ test_solver() {
   case "$SOLVER" in
     abc)
       RESULT=$(deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
-      ;;
-    boolector)
-      RESULT=$(./boolector$EXT --version && deps boolector$EXT && ./boolector$EXT "$PROBLEM" --no-exit-codes)
       ;;
     yices)
       RESULT=$(./yices-smt2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT "$PROBLEM")
