@@ -113,9 +113,9 @@ jobs:
         run: .github/ci.sh test_solver ${{ matrix.solver }}
         if: runner.os == 'Windows'
 
-      # Needed to normalize both "ubuntu-24.04" and "ubuntu-24.04-arm" to
-      # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
-      # mention ARM twice (#63).
+      # Needed to normalize runner names by stripping architecture suffixes:
+      # - "ubuntu-24.04-arm" -> "ubuntu-24.04" (avoids mentioning ARM twice, #63)
+      # - "macos-15-intel" -> "macos-15" (avoids redundant intel in name, #78)
       - name: Normalize runner name
         run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
 
@@ -204,7 +204,7 @@ jobs:
           - os: macos-15
             arch: ARM64
           - os: macos-15
-            arch: intel-X64
+            arch: X64
           # Windows packages
           - os: windows-2022
             arch: X64

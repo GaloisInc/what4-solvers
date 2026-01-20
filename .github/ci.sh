@@ -349,18 +349,22 @@ test_solver() {
   fi
 }
 
-# GitHub Actions' Ubuntu runners have somewhat unusual naming conventions. For
+# GitHub Actions' runners have somewhat unusual naming conventions. For
 # instance, there are both ubuntu-24.04 and ubuntu-24.04-arm runners. Each of
 # them has a distinct architecture (the former is x86-64, and the latter is
 # ARM64), but only ubuntu-24.04-arm explicitly encodes its architecture in the
-# runner name.
+# runner name. Similarly, there is a macos-15-intel runner that encodes the
+# architecture (Intel x86-64) in the runner name.
 #
 # For the sake of producing what4-solvers binary distributions, we would like to
-# normalize all Ubuntu 24.04 runner names to just "ubuntu-24.04". (We attach the
+# normalize runner names by stripping architecture suffixes. (We attach the
 # architecture to the bindist name separately.)
 normalize_runner_name() {
   ORIG_NAME="$1"
+  # Strip -arm suffix (for Ubuntu ARM runners)
   NORMALIZED_NAME=${ORIG_NAME%"-arm"}
+  # Strip -intel suffix (for macOS Intel runners)
+  NORMALIZED_NAME=${NORMALIZED_NAME%"-intel"}
   echo "$NORMALIZED_NAME"
 }
 
