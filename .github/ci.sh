@@ -150,45 +150,6 @@ build_boolector() {
   cleanup_bins
 }
 
-build_cvc4() {
-  pushd repos/CVC4-archived
-  # Make the get-antlr script work on both x86-64 and AArch64
-  patch -p1 -i $PATCHES/cvc4-antlr-check-aarch64.patch
-  # Fix a pointer-to-integer cast in ANTLR
-  patch -p1 -i $PATCHES/cvc4-antlr-pointer-to-integer-cast.patch
-  # Add missing #include statements that Clang++ requires in macos-14 or later.
-  patch -p1 -i $PATCHES/cvc4-fix-missing-includes.patch
-  # Backport a fix for https://github.com/cvc5/cvc5/issues/10591, which causes
-  # bash-5.2 to spuriously replace uses of ampersands (&) in text replacement.
-  # This patch was accumulated from the following CVC5 pull requests:
-  #
-  # * https://github.com/cvc5/cvc5/pull/9233
-  # * https://github.com/cvc5/cvc5/pull/9330
-  # * https://github.com/cvc5/cvc5/pull/9338
-  patch -p1 -i $PATCHES/cvc4-fix-spurious-bash-replacements.patch
-  ./contrib/get-antlr-3.4
-  ./contrib/get-symfpu
-  if $IS_WIN ; then
-    # Backport changes from https://github.com/cvc5/cvc5/pull/7512 needed to
-    # build CVC4 natively on Windows.
-    patch -p1 -i $PATCHES/cvc4-win64-native.patch
-    # GitHub Actions comes preinstalled with Chocolatey's mingw package, which
-    # includes the ld.gold linker. This does not play nicely with MSYS2's
-    # mingw-w64-x86_64-gcc, so we must prevent CMake from using ld.gold.
-    # (Ideally, there would be a CMake configuration option to accomplish this,
-    # but I have not found one.)
-    patch -p1 -i $PATCHES/cvc4-no-ld-gold.patch
-    ./configure.sh --static --static-binary --symfpu --win64-native production
-  else
-    ./configure.sh --static --no-static-binary --symfpu production
-  fi
-  cd build
-  make -j4
-  cp bin/cvc4$EXT $BIN
-  popd
-  cleanup_bins
-}
-
 build_cvc5() {
   pushd repos/cvc5
 
