@@ -86,10 +86,6 @@ build_abc() {
     # to the current directory every time it is invoked. For consistency with
     # ABC's behavior on other OSes, we disable this feature.
     sed -i.bak3 -e 's/#define ABC_USE_HISTORY 1//' src/base/cmd/cmdHist.c
-    # Work around https://github.com/berkeley-abc/abc/issues/136
-    echo "double Cudd_CountMinterm( DdManager * manager, DdNode * node, int nvars ) { return 0.0; }" >> src/base/abci/abc.c
-    # Work around https://github.com/berkeley-abc/abc/issues/154
-    patch -p1 -i $PATCHES/abc-intptr_t.patch
     make OPTFLAGS="-O2" ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64 -DWIN32_NO_DLL" CFLAGS="-DNT64 -DWIN32_NO_DLL" LDFLAGS="-static" -j4 abc
   else
     # Check if readline is available
