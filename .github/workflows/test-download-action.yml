@@ -47,7 +47,7 @@ jobs:
             runner: macos-15
           - os: macos-15
             arch: X64
-            runner: macos-15-intel
+            runner: macos-15
           # Windows
           - os: windows-2022
             arch: X64

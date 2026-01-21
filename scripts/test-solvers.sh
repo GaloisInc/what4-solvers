@@ -28,14 +28,17 @@ deps() {
 }
 
 # Test a solver by running it on the test problem
-# Usage: test_solver <solver_name> [use_system_path]
+# Usage: test_solver <solver_name> [use_system_path] [quiet]
 # Arguments:
 #   solver_name      Name of the solver to test
 #   use_system_path  If "true", use solvers from system PATH instead of local ./bin directory
+#   quiet            If "true", suppress all output (silent on success, exit code only)
 test_solver() {
   SOLVER="$1"
   USE_SYSTEM_PATH="${2:-false}"
-  echo "Testing $SOLVER with $PROBLEM..."
+  QUIET="${3:-false}"
+
+  $QUIET || printf "Testing %s with %s...\n" "$SOLVER" "$PROBLEM"
 
   if $USE_SYSTEM_PATH; then
     # Use solvers from system PATH
@@ -49,26 +52,44 @@ test_solver() {
   # Run the solver and capture output
   case "$SOLVER" in
     abc)
-      RESULT=$(deps ${SOLVER_PREFIX}abc$EXT && ${SOLVER_PREFIX}abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
+      if $QUIET; then
+        RESULT=$(${SOLVER_PREFIX}abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM" 2>/dev/null)
+      else
+        RESULT=$(deps ${SOLVER_PREFIX}abc$EXT && ${SOLVER_PREFIX}abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
+      fi
       ;;
     boolector)
-      RESULT=$(${SOLVER_PREFIX}boolector$EXT --version && deps ${SOLVER_PREFIX}boolector$EXT && ${SOLVER_PREFIX}boolector$EXT "$PROBLEM" --no-exit-codes)
+      if $QUIET; then
+        RESULT=$(${SOLVER_PREFIX}boolector$EXT "$PROBLEM" --no-exit-codes 2>/dev/null)
+      else
+        RESULT=$(${SOLVER_PREFIX}boolector$EXT --version && deps ${SOLVER_PREFIX}boolector$EXT && ${SOLVER_PREFIX}boolector$EXT "$PROBLEM" --no-exit-codes)
+      fi
       ;;
     yices)
-      RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT --version && deps ${SOLVER_PREFIX}yices-smt2$EXT && ${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM")
+      if $QUIET; then
+        RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM" 2>/dev/null)
+      else
+        RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT --version && deps ${SOLVER_PREFIX}yices-smt2$EXT && ${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM")
+      fi
       ;;
     *)
       # Most solvers use the same invocation pattern
-      RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT --version && deps ${SOLVER_PREFIX}"$SOLVER"$EXT && ${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM")
+      if $QUIET; then
+        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM" 2>/dev/null)
+      else
+        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT --version && deps ${SOLVER_PREFIX}"$SOLVER"$EXT && ${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM")
+      fi
       ;;
   esac
 
   # Check if the result contains "unsat"
-  if echo "$RESULT" | grep -q "unsat"; then
-    echo "✓ Test passed for $SOLVER (returned unsat)"
+  if printf "%s" "$RESULT" | grep -q "unsat"; then
+    $QUIET || printf "✓ Test passed for %s (returned unsat)\n" "$SOLVER"
   else
-    echo "✗ Test failed for $SOLVER: expected 'unsat', got:"
-    echo "$RESULT"
+    if ! $QUIET; then
+      printf "✗ Test failed for %s: expected 'unsat', got:\n" "$SOLVER"
+      printf "%s\n" "$RESULT"
+    fi
     return 1
   fi
 }
@@ -78,6 +99,6 @@ test_all_solvers() {
   for solver in abc bitwuzla boolector cvc4 cvc5 yices z3-4.8.8 z3-4.8.14
   do
     which "$solver"
-    test_solver "$solver" true
+    test_solver "$solver" true ${1:-false}
   done
 }
