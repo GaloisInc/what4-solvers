@@ -234,7 +234,8 @@ build_yices() {
     macOS) autoreconf ;;
     Windows) autoconf ;;
   esac
-  ./configure CFLAGS=-fPIC "$CONFIGURE_FLAGS"
+  # shellcheck disable=SC2086
+  ./configure CFLAGS=-fPIC $CONFIGURE_FLAGS
   make -j4
   make install
   popd
