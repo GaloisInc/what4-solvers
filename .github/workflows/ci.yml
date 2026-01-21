@@ -27,8 +27,9 @@ jobs:
           submodules: false
       - name: Shellcheck
         run: |
-          shellcheck .github/ci.sh
+          shellcheck -x -P SCRIPTDIR .github/ci.sh
           shellcheck scripts/download-solvers.sh
+          shellcheck scripts/test-solvers.sh
   build:
     runs-on: ${{ matrix.os }}
     strategy:

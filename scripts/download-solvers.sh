@@ -208,7 +208,17 @@ download_solvers() {
 
     printf "Downloading solvers..."
     if command -v curl &> /dev/null; then
-        curl -fsSL -o "$zipfile" "$url"
+        curl \
+          --fail \
+          --location \
+          --proto '=https' \
+          --retry 1 \
+          --retry-delay 3 \
+          --show-error \
+          --silent \
+          --tlsv1.2 \
+          --output  "$zipfile" \
+          "$url"
     elif command -v wget &> /dev/null; then
         wget -q -O "$zipfile" "$url"
     else

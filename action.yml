@@ -32,27 +32,22 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set destination path
-      id: set-dest
+    - name: Download solvers
+      id: download
       shell: bash
       env:
         DEST: ${{ inputs.dest }}
+        RELEASE: ${{ inputs.release }}
+        OS: ${{ inputs.os }}
+        ARCH: ${{ inputs.arch }}
+        ACTION_PATH: ${{ github.action_path }}
       run: |
+        # Set destination
         if [[ -z "${DEST}" ]]; then
           DEST="${{ runner.temp }}/what4-solvers"
         fi
         echo "dest=$DEST" >> $GITHUB_OUTPUT
 
-    - name: Download solvers
-      id: download
-      shell: bash
-      env:
-        RELEASE: ${{ inputs.release }}
-        OS: ${{ inputs.os }}
-        ARCH: ${{ inputs.arch }}
-        DEST: ${{ steps.set-dest.outputs.dest }}
-        ACTION_PATH: ${{ github.action_path }}
-      run: |
         # Build arguments for the download script
         ARGS=("-d" "$DEST")
 
@@ -71,8 +66,9 @@ runs:
         # Run the download script using action path (works when called from other repos)
         "${ACTION_PATH}/scripts/download-solvers.sh" "${ARGS[@]}"
 
-        echo "solvers-path=$DEST" >> $GITHUB_OUTPUT
+        # Add solvers to PATH
+        echo "$DEST" >> $GITHUB_PATH
 
-    - name: Add solvers to PATH
-      shell: bash
-      run: echo "${{ steps.download.outputs.solvers-path }}" >> $GITHUB_PATH
+    - name: Test Solvers
+      run: |
+          ${ACTION_PATH}/scripts/test-solvers.sh test_all_solvers
