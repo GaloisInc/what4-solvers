@@ -70,5 +70,6 @@ runs:
         echo "$DEST" >> $GITHUB_PATH
 
     - name: Test Solvers
+      shell: bash
       run: |
           ${ACTION_PATH}/scripts/test-solvers.sh test_all_solvers
