@@ -11,7 +11,6 @@ Currently, `what4-solvers` offers the following solver versions:
 
 * ABC - [99ab99bf](https://github.com/berkeley-abc/abc/tree/99ab99bfa6d1c2cc11d59af16aa26b273f611674)
 * Bitwuzla - [0.7.0](https://github.com/bitwuzla/bitwuzla/tree/3cf7c35b97c60016883cc19c4d6a9344a989a4d6)
-* Boolector - [3.2.2](https://github.com/Boolector/boolector/tree/e7aba964f69cd52dbe509e46e818a4411b316cd3)
 * CVC4 - [1.8](https://github.com/CVC4/CVC4-archived/tree/5247901077efbc7b9016ba35fded7a6ab459a379)
 * CVC5 - [1.3.1](https://github.com/cvc5/cvc5/tree/ea1b484fa54bfe56c0f8b3ac90a6e3e2f46441e7)
 * Yices - [2.6.5](https://github.com/SRI-CSL/yices2/tree/8e6297e233299631147f98659224c3118fc6a215)
