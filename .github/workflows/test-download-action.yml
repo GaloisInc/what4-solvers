@@ -53,6 +53,8 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup what4-solvers
         uses: ./
@@ -61,7 +63,7 @@ jobs:
       - name: Verify solvers are on PATH
         run: |
           echo "Testing: ${{ matrix.os }} / ${{ matrix.arch }}"
-          echo "Solvers path: ${{ steps.solvers.outputs.solvers-path }}"
+          echo "Solvers path: ${STEPS_SOLVERS_OUTPUTS_SOLVERS_PATH}"
 
           # Check that binaries exist and are executable
           z3 --version
@@ -69,6 +71,8 @@ jobs:
           cvc5 --version
           boolector --version
           bitwuzla --version
+        env:
+          STEPS_SOLVERS_OUTPUTS_SOLVERS_PATH: ${{ steps.solvers.outputs.solvers-path }}
 
       - name: Test Z3 with SMT2 problem
         run: |
@@ -99,6 +103,8 @@ jobs:
         run: dnf install -y git unzip
 
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup what4-solvers
         uses: ./
@@ -129,6 +135,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup what4-solvers with custom destination
         uses: ./
@@ -145,6 +153,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Setup what4-solvers with specific release
         uses: ./
