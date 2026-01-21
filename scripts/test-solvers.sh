@@ -99,6 +99,6 @@ test_all_solvers() {
   for solver in abc bitwuzla boolector cvc4 cvc5 yices z3-4.8.8 z3-4.8.14
   do
     which "$solver"
-    test_solver "$solver" true ${1:-false}
+    test_solver "$solver" true "${1:-false}"
   done
 }
