@@ -15,7 +15,6 @@ $IS_WIN && EXT=".exe"
 
 # Set default paths if not already set
 TOP="${TOP:-$(pwd)}"
-BIN="${BIN:-$TOP/bin}"
 PROBLEM="${PROBLEM:-$TOP/problems/mult_dist.smt2}"
 
 # deps function for showing library dependencies
@@ -28,56 +27,80 @@ deps() {
 }
 
 # Test a solver by running it on the test problem
-# Usage: test_solver <solver_name> [use_system_path] [quiet]
+# Usage: test_solver <solver_name> [solver_path] [quiet]
 # Arguments:
-#   solver_name      Name of the solver to test
-#   use_system_path  If "true", use solvers from system PATH instead of local ./bin directory
-#   quiet            If "true", suppress all output (silent on success, exit code only)
+#   solver           Name of the solver to test
+#   solver_path      Path to the solvers. If not set, use system path
+#   quiet            If set to true, print only a version and supress the test output (produce only a return code)
 test_solver() {
   SOLVER="$1"
-  USE_SYSTEM_PATH="${2:-false}"
-  QUIET="${3:-false}"
+
+  SOLVER_PREFIX=${2:-}
+
+  if [[ -n "$SOLVER_PREFIX" ]]; then
+    SOLVER_PREFIX=$SOLVER_PREFIX/
+  fi
+
+  QUIET=${3:-false}
 
   $QUIET || printf "Testing %s with %s...\n" "$SOLVER" "$PROBLEM"
-
-  if $USE_SYSTEM_PATH; then
-    # Use solvers from system PATH
-    SOLVER_PREFIX=""
-  else
-    # Use solvers from local bin directory
-    cd "$BIN"
-    SOLVER_PREFIX="./"
-  fi
 
   # Run the solver and capture output
   case "$SOLVER" in
     abc)
       if $QUIET; then
-        RESULT=$(${SOLVER_PREFIX}abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM" 2>/dev/null)
+        RESULT=$(${SOLVER_PREFIX}$SOLVER$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM" 2>/dev/null)
       else
-        RESULT=$(deps ${SOLVER_PREFIX}abc$EXT && ${SOLVER_PREFIX}abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
+        if [[ -n "$SOLVER_PREFIX" ]]; then
+          deps ${SOLVER_PREFIX}$SOLVER$EXT
+        fi
+        RESULT=$(${SOLVER_PREFIX}$SOLVER$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
       fi
       ;;
-    boolector)
-      if $QUIET; then
-        RESULT=$(${SOLVER_PREFIX}boolector$EXT "$PROBLEM" --no-exit-codes 2>/dev/null)
-      else
-        RESULT=$(${SOLVER_PREFIX}boolector$EXT --version && deps ${SOLVER_PREFIX}boolector$EXT && ${SOLVER_PREFIX}boolector$EXT "$PROBLEM" --no-exit-codes)
-      fi
-      ;;
-    yices)
-      if $QUIET; then
-        RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM" 2>/dev/null)
-      else
-        RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT --version && deps ${SOLVER_PREFIX}yices-smt2$EXT && ${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM")
-      fi
-      ;;
-    *)
+    bitwuzla)
+      printf "bitwuzla %s\n" $(${SOLVER_PREFIX}"$SOLVER"$EXT --version)
       # Most solvers use the same invocation pattern
       if $QUIET; then
         RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM" 2>/dev/null)
       else
-        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT --version && deps ${SOLVER_PREFIX}"$SOLVER"$EXT && ${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM")
+        if [[ -n "$SOLVER_PREFIX" ]]; then
+          deps ${SOLVER_PREFIX}$SOLVER$EXT
+        fi
+        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM")
+      fi
+      ;;
+    boolector)
+      printf "boolector %s\n" $(${SOLVER_PREFIX}$SOLVER$EXT --version)
+      if $QUIET; then
+        RESULT=$(${SOLVER_PREFIX}$SOLVER$EXT "$PROBLEM" --no-exit-codes 2>/dev/null)
+      else
+        if [[ -n "$SOLVER_PREFIX" ]]; then
+          deps ${SOLVER_PREFIX}$SOLVER$EXT
+        fi
+        RESULT=$(${SOLVER_PREFIX}$SOLVER$EXT "$PROBLEM" --no-exit-codes)
+      fi
+      ;;
+    yices)
+      ${SOLVER_PREFIX}yices-smt2$EXT --version | head -1
+      if $QUIET; then
+        RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM" 2>/dev/null)
+      else
+        if [[ -n "$SOLVER_PREFIX" ]]; then
+          deps ${SOLVER_PREFIX}yices-smt2$EXT
+        fi
+        RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM")
+      fi
+      ;;
+    *)
+      ${SOLVER_PREFIX}"$SOLVER"$EXT --version | head -1
+      # Most solvers use the same invocation pattern
+      if $QUIET; then
+        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM" 2>/dev/null)
+      else
+        if [[ -n "$SOLVER_PREFIX" ]]; then
+          deps ${SOLVER_PREFIX}$SOLVER$EXT
+        fi
+        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM")
       fi
       ;;
   esac
@@ -94,11 +117,16 @@ test_solver() {
   fi
 }
 
-# Test all solvers, assume they are on the PATH
+# Test all solvers, assume they are on the system PATH
+# If the first argument is `quiet`, only the solver version is printed
 test_all_solvers() {
   for solver in abc bitwuzla boolector cvc4 cvc5 yices z3-4.8.8 z3-4.8.14
   do
-    which "$solver"
-    #test_solver "$solver" true "${2:-false}"
+    test_solver "$solver" "" ${1:-}
   done
 }
+
+COMMAND="$1"
+shift
+
+"$COMMAND" "$@"
