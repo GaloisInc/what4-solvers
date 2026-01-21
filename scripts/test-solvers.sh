@@ -49,58 +49,58 @@ test_solver() {
   case "$SOLVER" in
     abc)
       if $QUIET; then
-        RESULT=$(${SOLVER_PREFIX}$SOLVER$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM" 2>/dev/null)
+        RESULT=$("${SOLVER_PREFIX}${SOLVER}${EXT}" -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM" 2>/dev/null)
       else
         if [[ -n "$SOLVER_PREFIX" ]]; then
-          deps ${SOLVER_PREFIX}$SOLVER$EXT
+          deps "${SOLVER_PREFIX}${SOLVER}${EXT}"
         fi
-        RESULT=$(${SOLVER_PREFIX}$SOLVER$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
+        RESULT=$("${SOLVER_PREFIX}${SOLVER}${EXT}" -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
       fi
       ;;
     bitwuzla)
-      printf "bitwuzla %s\n" $(${SOLVER_PREFIX}"$SOLVER"$EXT --version)
+      printf "bitwuzla %s\n" "$("${SOLVER_PREFIX}${SOLVER}${EXT}" --version)"
       # Most solvers use the same invocation pattern
       if $QUIET; then
-        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM" 2>/dev/null)
+        RESULT=$("${SOLVER_PREFIX}${SOLVER}${EXT}" "$PROBLEM" 2>/dev/null)
       else
         if [[ -n "$SOLVER_PREFIX" ]]; then
-          deps ${SOLVER_PREFIX}$SOLVER$EXT
+          deps "${SOLVER_PREFIX}${SOLVER}${EXT}"
         fi
-        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM")
+        RESULT=$("${SOLVER_PREFIX}${SOLVER}${EXT}" "$PROBLEM")
       fi
       ;;
     boolector)
-      printf "boolector %s\n" $(${SOLVER_PREFIX}$SOLVER$EXT --version)
+      printf "boolector %s\n" "$("${SOLVER_PREFIX}${SOLVER}${EXT}" --version)"
       if $QUIET; then
-        RESULT=$(${SOLVER_PREFIX}$SOLVER$EXT "$PROBLEM" --no-exit-codes 2>/dev/null)
+        RESULT=$("${SOLVER_PREFIX}${SOLVER}${EXT}" "$PROBLEM" --no-exit-codes 2>/dev/null)
       else
         if [[ -n "$SOLVER_PREFIX" ]]; then
-          deps ${SOLVER_PREFIX}$SOLVER$EXT
+          deps "${SOLVER_PREFIX}${SOLVER}${EXT}"
         fi
-        RESULT=$(${SOLVER_PREFIX}$SOLVER$EXT "$PROBLEM" --no-exit-codes)
+        RESULT=$("${SOLVER_PREFIX}${SOLVER}${EXT}" "$PROBLEM" --no-exit-codes)
       fi
       ;;
     yices)
-      ${SOLVER_PREFIX}yices-smt2$EXT --version | head -1
+      "${SOLVER_PREFIX}yices-smt2${EXT}" --version | head -1
       if $QUIET; then
-        RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM" 2>/dev/null)
+        RESULT=$("${SOLVER_PREFIX}yices-smt2${EXT}" "$PROBLEM" 2>/dev/null)
       else
         if [[ -n "$SOLVER_PREFIX" ]]; then
-          deps ${SOLVER_PREFIX}yices-smt2$EXT
+          deps "${SOLVER_PREFIX}yices-smt2${EXT}"
         fi
-        RESULT=$(${SOLVER_PREFIX}yices-smt2$EXT "$PROBLEM")
+        RESULT=$("${SOLVER_PREFIX}yices-smt2${EXT}" "$PROBLEM")
       fi
       ;;
     *)
-      ${SOLVER_PREFIX}"$SOLVER"$EXT --version | head -1
+      "${SOLVER_PREFIX}${SOLVER}${EXT}" --version | head -1
       # Most solvers use the same invocation pattern
       if $QUIET; then
-        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM" 2>/dev/null)
+        RESULT=$("${SOLVER_PREFIX}${SOLVER}${EXT}" "$PROBLEM" 2>/dev/null)
       else
         if [[ -n "$SOLVER_PREFIX" ]]; then
-          deps ${SOLVER_PREFIX}$SOLVER$EXT
+          deps "${SOLVER_PREFIX}${SOLVER}${EXT}"
         fi
-        RESULT=$(${SOLVER_PREFIX}"$SOLVER"$EXT "$PROBLEM")
+        RESULT=$("${SOLVER_PREFIX}${SOLVER}${EXT}" "$PROBLEM")
       fi
       ;;
   esac
@@ -122,7 +122,7 @@ test_solver() {
 test_all_solvers() {
   for solver in abc bitwuzla boolector cvc4 cvc5 yices z3-4.8.8 z3-4.8.14
   do
-    test_solver "$solver" "" ${1:-}
+    test_solver "$solver" "" "${1:-}"
   done
 }
 
