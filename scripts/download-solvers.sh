@@ -206,7 +206,7 @@ download_solvers() {
 
     local zipfile="$tmpdir/solvers.zip"
 
-    printf "Downloading solvers..."
+    printf "Downloading solvers...\n"
     if command -v curl &> /dev/null; then
         curl \
           --fail \
@@ -241,8 +241,7 @@ download_solvers() {
         chmod +x "$DEST"/*
     fi
 
-    printf "Solvers installed to %s:\n" "$DEST"
-    ls -la "$DEST"
+    printf "Solvers installed to %s\n" "$DEST"
 }
 
 download_solvers

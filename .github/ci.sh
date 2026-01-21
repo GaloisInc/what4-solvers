@@ -9,11 +9,6 @@ EXT=""
 PATCHES=$TOP/patches
 $IS_WIN && EXT=".exe"
 
-# Source test functions (PROBLEM is defined in test-solvers.sh)
-SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../scripts" && pwd)"
-# shellcheck source=../scripts/test-solvers.sh
-source "$SCRIPTS_DIR/test-solvers.sh"
-
 # Detect Linux distribution
 IS_REDHAT=false
 if $IS_LINUX; then
