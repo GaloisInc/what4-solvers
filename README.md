@@ -28,6 +28,39 @@ Built for the following operating systems:
 
 All of the binary distributions are built from CI.
 
+## Download solvers Github Action
+
+For convenience, we provide a github action that automatically detects OS and architecture,
+downloads the appropriate solver binaries from GitHub releases, and adds them to PATH.
+Solvers are downloaded to `what4-solvers` folder by default.
+
+The simplest use is to add a step to your workflow:
+
+```
+- name: Setup what4-solvers
+  uses: GaloisInc/what4-solvers@main
+```
+
+To override the default values, use `with` keyword:
+
+```
+- name: Setup what4-solvers with custom destination
+  uses: GaloisInc/what4-solvers@main
+  with:
+    dest: ${{ github.workspace }}/my-solvers
+```
+
+or
+
+```
+- name: Setup what4-solvers with specific release
+  uses: GaloisInc/what4-solvers@main
+    with:
+    release: snapshot-20251112
+```
+
+Consult `action.yml` for more details.
+
 ## FAQ
 
 ### Why build for multiple Ubuntu versions?
