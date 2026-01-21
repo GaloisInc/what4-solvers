@@ -71,5 +71,7 @@ runs:
 
     - name: Test Solvers
       shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
       run: |
-          ${ACTION_PATH}/scripts/test-solvers.sh test_all_solvers
+        ${ACTION_PATH}/scripts/test-solvers.sh test_all_solvers
