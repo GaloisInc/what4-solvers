@@ -28,11 +28,11 @@ Built for the following operating systems:
 
 All of the binary distributions are built from CI.
 
-## Download solvers Github Action
+## Download solvers GitHub Action
 
-For convenience, we provide a github action that automatically detects OS and architecture,
-downloads the appropriate solver binaries from GitHub releases, and adds them to PATH.
-Solvers are downloaded to `what4-solvers` folder by default.
+For convenience, we provide a GitHub action that automatically detects OS and architecture,
+downloads the appropriate solver binaries from GitHub releases, and adds them to the `PATH`.
+Solvers are downloaded to the `what4-solvers` folder by default.
 
 The simplest use is to add a step to your workflow:
 
@@ -41,7 +41,7 @@ The simplest use is to add a step to your workflow:
   uses: GaloisInc/what4-solvers@main
 ```
 
-To override the default values, use `with` keyword:
+To override the default values, use the `with` keyword:
 
 ```
 - name: Setup what4-solvers with custom destination
