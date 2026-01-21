@@ -73,5 +73,6 @@ runs:
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
+        PROBLEM: ${{ github.action_path }}/problems/mult_dist.smt2
       run: |
-        ${ACTION_PATH}/scripts/test-solvers.sh test_all_solvers true
+        PROBLEM=${PROBLEM} ${ACTION_PATH}/scripts/test-solvers.sh test_all_solvers true
