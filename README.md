@@ -38,14 +38,14 @@ The simplest use is to add a step to your workflow:
 
 ```
 - name: Setup what4-solvers
-  uses: GaloisInc/what4-solvers@main
+  uses: GaloisInc/what4-solvers@v1
 ```
 
 To override the default values, use the `with` keyword:
 
 ```
 - name: Setup what4-solvers with custom destination
-  uses: GaloisInc/what4-solvers@main
+  uses: GaloisInc/what4-solvers@v1
   with:
     dest: ${{ github.workspace }}/my-solvers
 ```
