@@ -60,30 +60,9 @@ jobs:
         uses: ./
         id: solvers
 
-      - name: Verify solvers are on PATH
+      - name: Test Solvers
         run: |
-          echo "Testing: ${{ matrix.os }} / ${{ matrix.arch }}"
-          echo "Solvers path: ${STEPS_SOLVERS_OUTPUTS_SOLVERS_PATH}"
-
-          # Check that binaries exist and are executable
-          z3 --version
-          yices-smt2 --version
-          cvc5 --version
-          boolector --version
-          bitwuzla --version
-        env:
-          STEPS_SOLVERS_OUTPUTS_SOLVERS_PATH: ${{ steps.solvers.outputs.solvers-path }}
-
-      - name: Test Z3 with SMT2 problem
-        run: |
-          cat  << EOF > /tmp/test.smt2
-          (set-logic QF_LIA)
-          (declare-fun x () Int)
-          (assert (= x 42))
-          (check-sat)
-          (get-model)
-          EOF
-          z3 /tmp/test.smt2
+          .github/ci.sh test_all_solvers
 
   # Test RedHat UBI9 in containers
   test-ubi9:
@@ -110,25 +89,9 @@ jobs:
         uses: ./
         id: solvers
 
-      - name: Verify solvers
+      - name: Test Solvers
         run: |
-          echo "Testing: redhat-ubi9 / ${{ matrix.arch }}"
-          z3 --version
-          yices-smt2 --version
-          cvc5 --version
-          boolector --version
-          bitwuzla --version
-
-      - name: Test Z3 with SMT2 problem
-        run: |
-          cat  << EOF > /tmp/test.smt2
-          (set-logic QF_LIA)
-          (declare-fun x () Int)
-          (assert (= x 42))
-          (check-sat)
-          (get-model)
-          EOF
-          z3 /tmp/test.smt2
+          .github/ci.sh test_all_solvers
 
   # Test custom destination option
   test-custom-dest:
@@ -146,7 +109,7 @@ jobs:
       - name: Verify custom destination
         run: |
           ls -la ${{ github.workspace }}/my-solvers
-          ${{ github.workspace }}/my-solvers/z3 --version
+          .github/ci.sh test_all_solvers
 
   # Test specific release tag
   test-release-tag:
@@ -161,5 +124,6 @@ jobs:
         with:
           release: snapshot-20251112
 
-      - name: Verify solvers
-        run: z3 --version
+      - name: Test Solvers
+        run: |
+          .github/ci.sh test_all_solvers
