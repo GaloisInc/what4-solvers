@@ -25,6 +25,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: false
+          persist-credentials: false
       - name: Shellcheck
         run: |
           shellcheck -x -P SCRIPTDIR .github/ci.sh
@@ -49,6 +50,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Install dependencies (Ubuntu)
         run: |
@@ -182,6 +184,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
+          persist-credentials: false
 
       - name: build_solver
         run: .github/ci.sh build_${{ matrix.solver }}
@@ -231,6 +234,7 @@ jobs:
         with:
           submodules: false
           fetch-depth: 1
+          persist-credentials: false
 
       - uses: actions/download-artifact@v6
         with:
