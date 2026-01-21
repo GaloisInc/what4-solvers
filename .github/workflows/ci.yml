@@ -132,7 +132,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
-        solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
+        solver: [abc, bitwuzla, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
 
       - name: Install dependencies (Red Hat UBI 9)
