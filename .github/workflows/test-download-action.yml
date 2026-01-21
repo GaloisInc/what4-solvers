@@ -1,4 +1,6 @@
 name: Test Download Action
+permissions:
+  contents: read
 
 on:
   push:
@@ -58,7 +60,6 @@ jobs:
 
       - name: Setup what4-solvers
         uses: ./
-        id: solvers
 
       - name: Test Solvers
         run: |
@@ -78,7 +79,7 @@ jobs:
     container:
       image: redhat/ubi9:latest
     steps:
-      - name: Install dependencies
+      - name: Install dependencies for actions/checkout
         run: dnf install -y git unzip
 
       - uses: actions/checkout@v6
@@ -87,7 +88,6 @@ jobs:
 
       - name: Setup what4-solvers
         uses: ./
-        id: solvers
 
       - name: Test Solvers
         run: |

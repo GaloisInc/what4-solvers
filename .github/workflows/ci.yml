@@ -19,6 +19,16 @@ defaults:
     shell: bash
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: false
+      - name: Shellcheck
+        run: |
+          shellcheck .github/ci.sh
+          shellcheck scripts/download-solvers.sh
   build:
     runs-on: ${{ matrix.os }}
     strategy:
