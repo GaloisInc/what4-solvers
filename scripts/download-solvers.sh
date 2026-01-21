@@ -68,7 +68,7 @@ while [[ $# -gt 0 ]]; do
             usage
             ;;
         *)
-            echo "Unknown option: $1" >&2
+            printf "Unknown option: %s" "$1" >&2
             usage
             ;;
     esac
@@ -77,7 +77,7 @@ done
 # Detect operating system
 detect_os() {
     if [[ -n "$OS_OVERRIDE" ]]; then
-        echo "$OS_OVERRIDE"
+        printf "%s" "$OS_OVERRIDE"
         return
     fi
 
@@ -88,8 +88,8 @@ detect_os() {
         Linux)
             # Detect the specific Linux distribution
             if [[ ! -f /etc/os-release ]]; then
-                echo "Error: Cannot detect Linux distribution (/etc/os-release not found)" >&2
-                echo "Use --os to specify one of: ubuntu-22.04, ubuntu-24.04, redhat-ubi9" >&2
+                printf "Error: Cannot detect Linux distribution (/etc/os-release not found)" >&2
+                printf "Use --os to specify one of: ubuntu-22.04, ubuntu-24.04, redhat-ubi9" >&2
                 exit 1
             fi
             # shellcheck disable=SC1091
@@ -97,44 +97,44 @@ detect_os() {
             case "$ID" in
                 ubuntu)
                     case "$VERSION_ID" in
-                        22.04) echo "ubuntu-22.04" ;;
-                        24.04) echo "ubuntu-24.04" ;;
+                        22.04) printf "ubuntu-22.04" ;;
+                        24.04) printf "ubuntu-24.04" ;;
                         *)
-                            echo "Error: Unsupported Ubuntu version: $VERSION_ID" >&2
-                            echo "Supported versions: 22.04, 24.04" >&2
-                            echo "Use --os to override if binaries from a similar version may work" >&2
+                            printf "Error: Unsupported Ubuntu version: %s" "$VERSION_ID" >&2
+                            printf "Supported versions: 22.04, 24.04" >&2
+                            printf "Use --os to override if binaries from a similar version may work" >&2
                             exit 1
                             ;;
                     esac
                     ;;
                 rhel)
                     case "${VERSION_ID%%.*}" in
-                        9) echo "redhat-ubi9" ;;
+                        9) printf "redhat-ubi9" ;;
                         *)
-                            echo "Error: Unsupported RHEL version: $VERSION_ID" >&2
-                            echo "Supported versions: 9.x" >&2
-                            echo "Use --os to override if binaries from a similar version may work" >&2
+                            printf "Error: Unsupported RHEL version: %s" "$VERSION_ID" >&2
+                            printf "Supported versions: 9.x" >&2
+                            printf "Use --os to override if binaries from a similar version may work" >&2
                             exit 1
                             ;;
                     esac
                     ;;
                 *)
-                    echo "Error: Unsupported Linux distribution: $ID" >&2
-                    echo "Supported distributions: ubuntu (22.04, 24.04), rhel (9.x)" >&2
-                    echo "Use --os to override if binaries from a similar distribution may work" >&2
+                    printf "Error: Unsupported Linux distribution: %s" "$ID" >&2
+                    printf "Supported distributions: ubuntu (22.04, 24.04), rhel (9.x)" >&2
+                    printf "Use --os to override if binaries from a similar distribution may work" >&2
                     exit 1
                     ;;
             esac
             ;;
         Darwin)
-            echo "macos-15"
+            printf "macos-15"
             ;;
         MINGW*|MSYS*|CYGWIN*|Windows_NT)
-            echo "windows-2022"
+            printf "windows-2022"
             ;;
         *)
-            echo "Error: Unsupported operating system: $kernel" >&2
-            echo "Supported systems: Linux (Ubuntu, RHEL), macOS, Windows" >&2
+            printf "Error: Unsupported operating system: %s" "$kernel" >&2
+            printf "Supported systems: Linux (Ubuntu, RHEL), macOS, Windows" >&2
             exit 1
             ;;
     esac
@@ -143,7 +143,7 @@ detect_os() {
 # Detect architecture
 detect_arch() {
     if [[ -n "$ARCH_OVERRIDE" ]]; then
-        echo "$ARCH_OVERRIDE"
+        printf "%s" "$ARCH_OVERRIDE"
         return
     fi
 
@@ -152,13 +152,13 @@ detect_arch() {
 
     case "$machine" in
         x86_64|amd64)
-            echo "X64"
+            printf "X64"
             ;;
         aarch64|arm64)
-            echo "ARM64"
+            printf "ARM64"
             ;;
         *)
-            echo "Error: Unsupported architecture: $machine" >&2
+            printf "Error: Unsupported architecture: %s" "$machine" >&2
             exit 1
             ;;
     esac
@@ -174,9 +174,9 @@ get_download_url() {
     asset_name="${os}-${arch}-bin.zip"
 
     if [[ "$tag" == "latest" ]]; then
-        echo "https://github.com/${REPO}/releases/latest/download/${asset_name}"
+        printf "https://github.com/%s/releases/latest/download/%s" "$REPO" "$asset_name"
     else
-        echo "https://github.com/${REPO}/releases/download/${tag}/${asset_name}"
+        printf "https://github.com/%s/releases/download/%s/%s" "$REPO" "$tag" "$asset_name"
     fi
 }
 
@@ -187,13 +187,13 @@ download_solvers() {
     os=$(detect_os)
     arch=$(detect_arch)
 
-    echo "Detected OS: $os"
-    echo "Detected architecture: $arch"
-    echo "Release: $RELEASE_TAG"
-    echo "Destination: $DEST"
+    printf "Detected OS: %s\n" "$os"
+    printf "Detected architecture: %s\n" "$arch"
+    printf "Release: %s\n" "$RELEASE_TAG"
+    printf "Destination: %s\n" "$DEST"
 
     url=$(get_download_url "$os" "$arch" "$RELEASE_TAG")
-    echo "Download URL: $url"
+    printf "Download URL: %s\n" "$url"
 
     # Create destination directory
     mkdir -p "$DEST"
@@ -206,23 +206,23 @@ download_solvers() {
 
     local zipfile="$tmpdir/solvers.zip"
 
-    echo "Downloading solvers..."
+    printf "Downloading solvers..."
     if command -v curl &> /dev/null; then
         curl -fsSL -o "$zipfile" "$url"
     elif command -v wget &> /dev/null; then
         wget -q -O "$zipfile" "$url"
     else
-        echo "Error: Neither curl nor wget found" >&2
+        printf "Error: Neither curl nor wget found" >&2
         exit 1
     fi
 
-    echo "Extracting to $DEST..."
+    printf "Extracting to %s...\n" "$DEST"
     if command -v unzip &> /dev/null; then
         unzip -o -q "$zipfile" -d "$DEST"
     elif command -v 7z &> /dev/null; then
         7z x -y -o"$DEST" "$zipfile" > /dev/null
     else
-        echo "Error: Neither unzip nor 7z found" >&2
+        printf "Error: Neither unzip nor 7z found" >&2
         exit 1
     fi
 
@@ -231,7 +231,7 @@ download_solvers() {
         chmod +x "$DEST"/*
     fi
 
-    echo "Solvers installed to $DEST:"
+    printf "Solvers installed to %s:\n" "$DEST"
     ls -la "$DEST"
 }
 
