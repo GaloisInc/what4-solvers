@@ -171,12 +171,7 @@ get_download_url() {
     local tag="$3"
 
     local asset_name
-    # Handle special case for macOS Intel
-    if [[ "$os" == "macos-15" && "$arch" == "X64" ]]; then
-        asset_name="macos-15-intel-X64-bin.zip"
-    else
-        asset_name="${os}-${arch}-bin.zip"
-    fi
+    asset_name="${os}-${arch}-bin.zip"
 
     if [[ "$tag" == "latest" ]]; then
         echo "https://github.com/${REPO}/releases/latest/download/${asset_name}"
