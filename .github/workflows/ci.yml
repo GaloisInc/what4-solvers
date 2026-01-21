@@ -118,12 +118,12 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: test_solver (non-Windows)
-        run: .github/ci.sh test_solver ${{ matrix.solver }} bin
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
         if: runner.os != 'Windows'
 
       - name: test_solver (Windows)
         shell: msys2 {0}
-        run: .github/ci.sh test_solver ${{ matrix.solver }} bin
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
         if: runner.os == 'Windows'
 
       # Needed to normalize both "ubuntu-24.04" and "ubuntu-24.04-arm" to
@@ -190,7 +190,7 @@ jobs:
         run: .github/ci.sh build_${{ matrix.solver }}
 
       - name: test_solver
-        run: .github/ci.sh test_solver ${{ matrix.solver }} bin
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
 
       - name: Set OS name
         run: echo "OS_NAME=redhat-ubi9" >> $GITHUB_ENV

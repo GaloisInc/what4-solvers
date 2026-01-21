@@ -63,7 +63,7 @@ jobs:
 
       - name: Test Solvers
         run: |
-          .github/ci.sh test_all_solvers
+          ./scripts/test-solvers.sh test_all_solvers
 
   # Test RedHat UBI9 in containers
   test-ubi9:
@@ -93,7 +93,7 @@ jobs:
 
       - name: Test Solvers
         run: |
-          .github/ci.sh test_all_solvers
+          ./scripts/test-solvers.sh test_all_solvers
 
   # Test custom destination option
   test-custom-dest:
@@ -111,7 +111,7 @@ jobs:
       - name: Verify custom destination
         run: |
           ls -la ${{ github.workspace }}/my-solvers
-          .github/ci.sh test_all_solvers
+          ./scripts/test-solvers.sh test_all_solvers
 
   # Test specific release tag
   test-release-tag:
@@ -128,4 +128,4 @@ jobs:
 
       - name: Test Solvers
         run: |
-          .github/ci.sh test_all_solvers
+          ./scripts/test-solvers.sh test_all_solvers
