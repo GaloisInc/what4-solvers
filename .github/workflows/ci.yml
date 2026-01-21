@@ -137,8 +137,10 @@ jobs:
 
   build-ubi9:
     runs-on: ${{ matrix.os }}
+    # We use unpinned image because downstream users typically use unpinned images as well.
+    # By using the `latest` tag we aim to catch any future breaking changes here.
     container:
-      image: redhat/ubi9:latest
+      image: redhat/ubi9:latest # zizmor: ignore[unpinned-images]
     strategy:
       fail-fast: false
       matrix:
