@@ -1,0 +1,131 @@
+name: Test Download Action
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'action.yml'
+      - 'scripts/download-solvers.sh'
+      - '.github/workflows/test-download-action.yml'
+  pull_request:
+    paths:
+      - 'action.yml'
+      - 'scripts/download-solvers.sh'
+      - '.github/workflows/test-download-action.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # Test all supported OS/architecture combinations
+  test-matrix:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ubuntu 24.04
+          - os: ubuntu-24.04
+            arch: X64
+            runner: ubuntu-24.04
+          - os: ubuntu-24.04
+            arch: ARM64
+            runner: ubuntu-24.04-arm
+          # Ubuntu 22.04
+          - os: ubuntu-22.04
+            arch: X64
+            runner: ubuntu-22.04
+          - os: ubuntu-22.04
+            arch: ARM64
+            runner: ubuntu-22.04-arm
+          # macOS
+          - os: macos-15
+            arch: ARM64
+            runner: macos-15
+          - os: macos-15
+            arch: X64
+            runner: macos-15
+          # Windows
+          - os: windows-2022
+            arch: X64
+            runner: windows-2022
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup what4-solvers
+        uses: ./
+
+      - name: Test Solvers
+        run: |
+          ./scripts/test-solvers.sh test_all_solvers
+
+  # Test RedHat UBI9 in containers
+  test-ubi9:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: X64
+            runner: ubuntu-24.04
+          - arch: ARM64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    # We use unpinned image because downstream users typically use unpinned images as well.
+    # By using the `latest` tag we aim to catch any future breaking changes here.
+    container:
+      image: redhat/ubi9:latest # zizmor: ignore[unpinned-images]
+    steps:
+      - name: Install dependencies for actions/checkout
+        run: dnf install -y git unzip
+
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup what4-solvers
+        uses: ./
+
+      - name: Test Solvers
+        run: |
+          ./scripts/test-solvers.sh test_all_solvers
+
+  # Test custom destination option
+  test-custom-dest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup what4-solvers with custom destination
+        uses: ./
+        with:
+          dest: ${{ github.workspace }}/my-solvers
+
+      - name: Verify custom destination
+        run: |
+          ls -la ${{ github.workspace }}/my-solvers
+          ./scripts/test-solvers.sh test_all_solvers
+
+  # Test specific release tag
+  test-release-tag:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup what4-solvers with specific release
+        uses: ./
+        with:
+          release: snapshot-20251112
+
+      - name: Test Solvers
+        run: |
+          ./scripts/test-solvers.sh test_all_solvers

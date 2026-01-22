@@ -1,0 +1,78 @@
+name: 'Setup what4-solvers'
+description: 'Download and install what4-solvers binaries.'
+author: 'Galois, Inc.'
+
+branding:
+  icon: 'download'
+  color: 'blue'
+
+inputs:
+  release:
+    description: 'Release tag to download (default: latest)'
+    required: false
+    default: 'latest'
+  os:
+    description: 'Override OS detection (ubuntu-22.04, ubuntu-24.04, macos-15, windows-2022, redhat-ubi9)'
+    required: false
+    default: ''
+  arch:
+    description: 'Override architecture detection (X64, ARM64)'
+    required: false
+    default: ''
+  dest:
+    description: 'Destination directory for solver binaries'
+    required: false
+    default: 'what4-solvers'
+
+outputs:
+  solvers-path:
+    description: 'Path to the directory containing solver binaries'
+    value: ${{ steps.download.outputs.solvers-path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download solvers
+      id: download
+      shell: bash
+      env:
+        DEST: ${{ inputs.dest }}
+        RELEASE: ${{ inputs.release }}
+        OS: ${{ inputs.os }}
+        ARCH: ${{ inputs.arch }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        # Set destination
+        if [[ -z "${DEST}" ]]; then
+          DEST="${{ runner.temp }}/what4-solvers"
+        fi
+        echo "dest=$DEST" >> $GITHUB_OUTPUT
+
+        # Build arguments for the download script
+        ARGS=("-d" "$DEST")
+
+        if [[ "$RELEASE" != "latest" ]]; then
+          ARGS+=("-r" "$RELEASE")
+        fi
+
+        if [[ -n "$OS" ]]; then
+          ARGS+=("-o" "$OS")
+        fi
+
+        if [[ -n "$ARCH" ]]; then
+          ARGS+=("-a" "$ARCH")
+        fi
+
+        # Run the download script using action path (works when called from other repos)
+        "${ACTION_PATH}/scripts/download-solvers.sh" "${ARGS[@]}"
+
+        # Add solvers to PATH
+        echo "$DEST" >> $GITHUB_PATH
+
+    - name: Test Solvers
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        PROBLEM: ${{ github.action_path }}/problems/mult_dist.smt2
+      run: |
+        PROBLEM=${PROBLEM} ${ACTION_PATH}/scripts/test-solvers.sh test_all_solvers true

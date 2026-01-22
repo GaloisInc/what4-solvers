@@ -19,6 +19,18 @@ defaults:
     shell: bash
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: false
+          persist-credentials: false
+      - name: Shellcheck
+        run: |
+          shellcheck -x -P SCRIPTDIR .github/ci.sh
+          shellcheck scripts/download-solvers.sh
+          shellcheck scripts/test-solvers.sh
   build:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -38,6 +50,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Install dependencies (Ubuntu)
         run: |
@@ -105,12 +118,12 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: test_solver (non-Windows)
-        run: .github/ci.sh test_solver ${{ matrix.solver }}
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
         if: runner.os != 'Windows'
 
       - name: test_solver (Windows)
         shell: msys2 {0}
-        run: .github/ci.sh test_solver ${{ matrix.solver }}
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
         if: runner.os == 'Windows'
 
       # Needed to normalize runner names by stripping architecture suffixes:
@@ -126,8 +139,10 @@ jobs:
 
   build-ubi9:
     runs-on: ${{ matrix.os }}
+    # We use unpinned image because downstream users typically use unpinned images as well.
+    # By using the `latest` tag we aim to catch any future breaking changes here.
     container:
-      image: redhat/ubi9:latest
+      image: redhat/ubi9:latest # zizmor: ignore[unpinned-images]
     strategy:
       fail-fast: false
       matrix:
@@ -169,12 +184,13 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
+          persist-credentials: false
 
       - name: build_solver
         run: .github/ci.sh build_${{ matrix.solver }}
 
       - name: test_solver
-        run: .github/ci.sh test_solver ${{ matrix.solver }}
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
 
       - name: Set OS name
         run: echo "OS_NAME=redhat-ubi9" >> $GITHUB_ENV
@@ -218,6 +234,7 @@ jobs:
         with:
           submodules: false
           fetch-depth: 1
+          persist-credentials: false
 
       - uses: actions/download-artifact@v6
         with:
