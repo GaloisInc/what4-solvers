@@ -256,7 +256,8 @@ build_yices() {
   pushd repos/yices2
   autoconf
   if $IS_WIN; then
-    ./configure --enable-mcsat "$CONFIGURE_FLAGS"
+    # shellcheck disable=SC2086
+    ./configure --enable-mcsat $CONFIGURE_FLAGS
     dos2unix src/frontend/smt2/smt2_tokens.txt
     dos2unix src/frontend/smt2/smt2_keywords.txt
     dos2unix src/frontend/smt2/smt2_symbols.txt
@@ -264,7 +265,8 @@ build_yices() {
     dos2unix src/frontend/yices/yices_keywords.txt
     cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
   else
-    ./configure --enable-mcsat "$CONFIGURE_FLAGS"
+    # shellcheck disable=SC2086
+    ./configure --enable-mcsat $CONFIGURE_FLAGS
   fi
   make -j4 static-bin
   cp build/*/static_bin/* "$BIN"
