@@ -189,7 +189,7 @@ jobs:
 
       - name: Install Python libraries
         run: |
-          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip --root-user-action
           pip3 install meson pyparsing toml tomli
 
       - name: Install Java
