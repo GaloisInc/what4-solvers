@@ -19,6 +19,19 @@ defaults:
     shell: bash
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: false
+          persist-credentials: false
+      - name: Shellcheck
+        run: |
+          shellcheck -x -P SCRIPTDIR .github/ci.sh
+          shellcheck scripts/download-solvers.sh
+          shellcheck scripts/test-solvers.sh
+
   # This job captures native runners that cannot be neatly containerized
   build-native:
     runs-on: ${{ matrix.os }}
@@ -99,12 +112,12 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: test_solver (non-Windows)
-        run: .github/ci.sh test_solver ${{ matrix.solver }}
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
         if: runner.os != 'Windows'
 
       - name: test_solver (Windows)
         shell: msys2 {0}
-        run: .github/ci.sh test_solver ${{ matrix.solver }}
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
         if: runner.os == 'Windows'
 
       - name: Normalize runner name
@@ -117,6 +130,8 @@ jobs:
 
   build-container:
     runs-on: ${{ matrix.os }}
+    # We use unpinned image because downstream users typically use unpinned images as well.
+    # By using the `latest` tag we aim to catch any future breaking changes here.
     container:
       image: ${{ matrix.container }}
     strategy:
@@ -190,7 +205,7 @@ jobs:
         run: .github/ci.sh build_${{ matrix.solver }}
 
       - name: test_solver
-        run: .github/ci.sh test_solver ${{ matrix.solver }}
+        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
 
       - name: Normalize runner name
         run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.container }})" >> $GITHUB_ENV
@@ -220,7 +235,7 @@ jobs:
           - os: macos-15
             arch: ARM64
           - os: macos-15
-            arch: intel-X64
+            arch: X64
           # Windows packages
           - os: windows-2022
             arch: X64
@@ -234,6 +249,7 @@ jobs:
         with:
           submodules: false
           fetch-depth: 1
+          persist-credentials: false
 
       - uses: actions/download-artifact@v6
         with:
@@ -285,7 +301,7 @@ jobs:
         # which is `windows-2022`, rather than the runner OS, which would be `Windows`
       - name: Copy latest Z3 version
         run: |
-         [[ "${{ matrix.os }}" == "windows-2022" ]] && EXE=".exe" || EXE=""
+         [[ "${{ matrix.os }}" == *windows* ]] && EXE=".exe" || EXE=""
          cp bin/z3-${{ env.LATEST_Z3_VERSION }}$EXE bin/z3$EXE
 
       - uses: actions/upload-artifact@v4
