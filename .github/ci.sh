@@ -356,12 +356,28 @@ test_solver() {
 # runner name.
 #
 # For the sake of producing what4-solvers binary distributions, we would like to
-# normalize all Ubuntu 24.04 runner names to just "ubuntu-24.04". (We attach the
-# architecture to the bindist name separately.)
+# normalize runner and container names. (We attach the architecture to the
+# bindist name separately.)
 normalize_runner_name() {
   ORIG_NAME="$1"
-  NORMALIZED_NAME=${ORIG_NAME%"-arm"}
-  echo "$NORMALIZED_NAME"
+  case "$ORIG_NAME" in
+    "ubuntu:24.04")
+      echo "ubuntu-24.04"
+      ;;
+    "ubuntu:22.04")
+      echo "ubuntu-22.04"
+      ;;
+    "redhat/ubi9:latest")
+      echo "redhat-ubi9"
+      ;;
+    *)
+      # Default: strip "-arm" suffix from runner names
+      NORMALIZED_NAME=${ORIG_NAME%"-arm"}
+      # Strip -intel suffix (for macOS Intel runners)
+      NORMALIZED_NAME=${NORMALIZED_NAME%"-intel"}
+      echo "$NORMALIZED_NAME"
+      ;;
+  esac
 }
 
 COMMAND="$1"

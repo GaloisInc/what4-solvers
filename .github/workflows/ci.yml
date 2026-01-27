@@ -20,45 +20,24 @@ defaults:
 
 jobs:
   # This job captures native runners that cannot be neatly containerized
-  # There are docker containers for MacOS and Windows, but maybe they don't work that well?
-  # build-native:
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     os: [macos-15, macos-15-intel, windows-2022]
-  #     solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
-
-  build-container:
+  build-native:
     runs-on: ${{ matrix.os }}
-    container:
-      image: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
-        # the base runner OS - we use the latest ubuntu, both in x86 and arm64
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
-        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
-        # each will be built in both arm and x86 version
-        container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest, ]
+        os: [macos-15, macos-15-intel, windows-2022]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
       # This is necessary to clone the yices2 repo on Windows, as some of the
       # repo's test cases exceed the Windows API's default file path limit of
       # 260 characters.
       - name: Enable long file paths on Windows
         run: git config --system core.longpaths true
-        if: runner.os == 'Windows'
-
-      - uses: actions/checkout@v6
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      - name: Install dependencies (Ubuntu)
-        run: |
-          sudo apt-get update
-          sudo apt-get install gperf automake autoconf libreadline-dev lzip ninja-build
-        if: runner.os == 'Linux'
+        if: contains(matrix.os, 'windows')
 
       - name: Install dependencies (macOS)
         run: |
@@ -68,7 +47,7 @@ jobs:
           # work around this, we install put GNU sed before macOS's sed on the
           # PATH.
           echo "PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH" >> $GITHUB_ENV
-        if: runner.os == 'macOS'
+        if: contains(matrix.os, 'macos')
 
       - name: Install dependencies (Windows)
         uses: msys2/setup-msys2@v2
@@ -92,7 +71,7 @@ jobs:
             patch
             tar
             unzip
-        if: runner.os == 'Windows'
+        if: contains(matrix.os, 'windows')
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -128,9 +107,6 @@ jobs:
         run: .github/ci.sh test_solver ${{ matrix.solver }}
         if: runner.os == 'Windows'
 
-      # Needed to normalize both "ubuntu-24.04" and "ubuntu-24.04-arm" to
-      # "ubuntu-24.04" so that the Ubuntu ARM64 binaries don't accidentally
-      # mention ARM twice (#63).
       - name: Normalize runner name
         run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
 
@@ -139,14 +115,18 @@ jobs:
           path: bin
           name: ${{ env.OS_NAME }}-${{ runner.arch }}-${{ matrix.solver }}-bin
 
-  build-ubi9:
+  build-container:
     runs-on: ${{ matrix.os }}
     container:
-      image: redhat/ubi9:latest
+      image: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
+        # the base runner OS - we use the latest ubuntu, both in x86 and arm64
         os: [ubuntu-24.04, ubuntu-24.04-arm]
+        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
+        # each will be built in both arm and x86 version
+        container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
 
@@ -162,6 +142,7 @@ jobs:
 
           # Install additional dependencies from EPEL
           dnf install -y --enablerepo=epel lzip
+        if: contains(matrix.container, 'redhat')
 
       - name: Install additional dependencies (Red Hat UBI 9)
         run: |
@@ -174,16 +155,36 @@ jobs:
           # Python: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
           # Java: Required by CVC4, CVC5 (for ANTLR)
           dnf install -y python3 python3-pip java-17-openjdk-devel
+        if: contains(matrix.container, 'redhat')
+
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
+
+      - name: Install dependencies (Ubuntu)
+        run: |
+          sudo apt-get update
+          sudo apt-get install gperf automake autoconf libreadline-dev lzip ninja-build
+        if: contains(matrix.container, 'ubuntu')
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+        if: contains(matrix.container, 'ubuntu')
 
       - name: Install Python libraries
         run: |
           python3 -m pip install --upgrade pip
           pip3 install meson pyparsing toml tomli
 
-      - uses: actions/checkout@v6
+      - name: Install Java
+        uses: actions/setup-java@v3
         with:
-          submodules: true
-          fetch-depth: 0
+          distribution: 'temurin'
+          java-version: '17'
+        if: contains(matrix.container, 'ubuntu')
 
       - name: build_solver
         run: .github/ci.sh build_${{ matrix.solver }}
@@ -191,8 +192,8 @@ jobs:
       - name: test_solver
         run: .github/ci.sh test_solver ${{ matrix.solver }}
 
-      - name: Set OS name
-        run: echo "OS_NAME=redhat-ubi9" >> $GITHUB_ENV
+      - name: Normalize runner name
+        run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.container }})" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v4
         with:
@@ -201,7 +202,7 @@ jobs:
 
   package_solvers:
     runs-on: ubuntu-latest
-    needs: [build, build-ubi9]
+    needs: [build-native, build-container]
     strategy:
       fail-fast: false
       matrix:
@@ -300,6 +301,6 @@ jobs:
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
     runs-on: ubuntu-24.04
-    needs: [build, build-ubi9]
+    needs: [build-native, build-container]
     steps:
       - run: "true"
