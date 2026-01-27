@@ -7,19 +7,15 @@ TOP=$(pwd)
 BIN=$TOP/bin
 EXT=""
 PATCHES=$TOP/patches
-PROBLEM=$TOP/problems/mult_dist.smt2
 $IS_WIN && EXT=".exe"
 
 # Detect Linux distribution
-IS_UBUNTU=false
 IS_REDHAT=false
 if $IS_LINUX; then
   if [ -f /etc/os-release ]; then
+    # shellcheck source=/dev/null
     . /etc/os-release
     case "$ID" in
-      ubuntu)
-        IS_UBUNTU=true
-        ;;
       rhel)
         IS_REDHAT=true
         ;;
@@ -30,14 +26,6 @@ if $IS_LINUX; then
 fi
 
 mkdir -p "$BIN"
-
-deps() {
-    case "$RUNNER_OS" in
-      Linux) ldd $1 || true ;;
-      macOS) otool -L $1 || true ;;
-      Windows) ldd $1 || true ;;
-    esac
-}
 
 # Build static GMP library from source
 # Used by bitwuzla and yices when static GMP is not available
@@ -57,7 +45,7 @@ ensure_static_gmp() {
     pushd "repos/gmp-$GMP_VERSION"
 
     # Make gmp-6.3.0 build with GCC >=15
-    patch -p1 -i $PATCHES/gmp-gcc-15-fix.patch
+    patch -p1 -i "$PATCHES/gmp-gcc-15-fix.patch"
 
     # On intel MacOS 15.x, gmp-6.3.0 started building broken libs full
     # of text relocations. Force --with-pic to stop this. Otherwise, gmp
@@ -69,7 +57,7 @@ ensure_static_gmp() {
       *) GMP_CONFIGURE_FLAGS=;;
     esac
 
-    ./configure --prefix=$TOP/install-root --enable-static --disable-shared --enable-cxx $GMP_CONFIGURE_FLAGS
+    ./configure --prefix="$TOP/install-root" --enable-static --disable-shared --enable-cxx $GMP_CONFIGURE_FLAGS
     make -j4
     make install
     popd
@@ -89,7 +77,7 @@ build_abc() {
     # Work around https://github.com/berkeley-abc/abc/issues/136
     echo "double Cudd_CountMinterm( DdManager * manager, DdNode * node, int nvars ) { return 0.0; }" >> src/base/abci/abc.c
     # Work around https://github.com/berkeley-abc/abc/issues/154
-    patch -p1 -i $PATCHES/abc-intptr_t.patch
+    patch -p1 -i "$PATCHES/abc-intptr_t.patch"
     make OPTFLAGS="-O2" ABC_USE_NO_READLINE=1 ABC_USE_NO_PTHREADS=1 ABC_USE_NO_CUDD=1 CXXFLAGS="-fpermissive -DNT64 -DWIN32_NO_DLL" CFLAGS="-DNT64 -DWIN32_NO_DLL" LDFLAGS="-static" -j4 abc
   else
     # Check if readline is available
@@ -103,7 +91,7 @@ build_abc() {
       make OPTFLAGS="-O2" -j4 abc
     fi
   fi
-  cp abc$EXT $BIN
+  cp "abc$EXT" "$BIN"
   popd
   cleanup_bins
 }
@@ -123,11 +111,11 @@ build_bitwuzla() {
   # Backport the changes from
   # https://github.com/bitwuzla/bitwuzla/commit/d30ef4147eb2cbe21267702a1c0be60e01d353cd
   # to make Bitwuzla build with GCC >=15
-  patch -p1 -i $PATCHES/bitwuzla-gcc-15-fix.patch
+  patch -p1 -i "$PATCHES/bitwuzla-gcc-15-fix.patch"
   ./configure.py
   cd build
   ninja -j4
-  cp src/main/bitwuzla$EXT $BIN
+  cp "src/main/bitwuzla$EXT" "$BIN"
   popd
   cleanup_bins
 }
@@ -137,7 +125,7 @@ build_boolector() {
   if $IS_WIN ; then
     export CMAKE_OPTS="-DIS_WINDOWS_BUILD=1"
     # Backport https://github.com/Boolector/boolector/pull/181
-    patch -p1 -i $PATCHES/boolector-mingw64.patch
+    patch -p1 -i "$PATCHES/boolector-mingw64.patch"
   fi
   ./contrib/setup-lingeling.sh
   ./contrib/setup-cadical.sh
@@ -145,7 +133,7 @@ build_boolector() {
   ./configure.sh --ninja
   cd build
   ninja -j4
-  cp bin/boolector$EXT $BIN
+  cp "bin/boolector$EXT" "$BIN"
   popd
   cleanup_bins
 }
@@ -153,11 +141,11 @@ build_boolector() {
 build_cvc4() {
   pushd repos/CVC4-archived
   # Make the get-antlr script work on both x86-64 and AArch64
-  patch -p1 -i $PATCHES/cvc4-antlr-check-aarch64.patch
+  patch -p1 -i "$PATCHES/cvc4-antlr-check-aarch64.patch"
   # Fix a pointer-to-integer cast in ANTLR
-  patch -p1 -i $PATCHES/cvc4-antlr-pointer-to-integer-cast.patch
+  patch -p1 -i "$PATCHES/cvc4-antlr-pointer-to-integer-cast.patch"
   # Add missing #include statements that Clang++ requires in macos-14 or later.
-  patch -p1 -i $PATCHES/cvc4-fix-missing-includes.patch
+  patch -p1 -i "$PATCHES/cvc4-fix-missing-includes.patch"
   # Backport a fix for https://github.com/cvc5/cvc5/issues/10591, which causes
   # bash-5.2 to spuriously replace uses of ampersands (&) in text replacement.
   # This patch was accumulated from the following CVC5 pull requests:
@@ -165,26 +153,26 @@ build_cvc4() {
   # * https://github.com/cvc5/cvc5/pull/9233
   # * https://github.com/cvc5/cvc5/pull/9330
   # * https://github.com/cvc5/cvc5/pull/9338
-  patch -p1 -i $PATCHES/cvc4-fix-spurious-bash-replacements.patch
+  patch -p1 -i "$PATCHES/cvc4-fix-spurious-bash-replacements.patch"
   ./contrib/get-antlr-3.4
   ./contrib/get-symfpu
   if $IS_WIN ; then
     # Backport changes from https://github.com/cvc5/cvc5/pull/7512 needed to
     # build CVC4 natively on Windows.
-    patch -p1 -i $PATCHES/cvc4-win64-native.patch
+    patch -p1 -i "$PATCHES/cvc4-win64-native.patch"
     # GitHub Actions comes preinstalled with Chocolatey's mingw package, which
     # includes the ld.gold linker. This does not play nicely with MSYS2's
     # mingw-w64-x86_64-gcc, so we must prevent CMake from using ld.gold.
     # (Ideally, there would be a CMake configuration option to accomplish this,
     # but I have not found one.)
-    patch -p1 -i $PATCHES/cvc4-no-ld-gold.patch
+    patch -p1 -i "$PATCHES/cvc4-no-ld-gold.patch"
     ./configure.sh --static --static-binary --symfpu --win64-native production
   else
     ./configure.sh --static --no-static-binary --symfpu production
   fi
   cd build
   make -j4
-  cp bin/cvc4$EXT $BIN
+  cp "bin/cvc4$EXT" "$BIN"
   popd
   cleanup_bins
 }
@@ -207,13 +195,13 @@ build_cvc5() {
     # with multiple versions of Python pre-installed, and for some bizarre
     # reason, CMake always tries to pick the latest version, even if it is not
     # on the PATH. Manually overriding this option avoids this oddity.
-    ./configure.sh -DPython_EXECUTABLE=$PYTHON_EXE --static --static-binary --auto-download --win64-native production
+    ./configure.sh -DPython_EXECUTABLE="$PYTHON_EXE" --static --static-binary --auto-download --win64-native production
   else
-    ./configure.sh -DPython_EXECUTABLE=$PYTHON_EXE --static --no-static-binary --auto-download production
+    ./configure.sh -DPython_EXECUTABLE="$PYTHON_EXE" --static --no-static-binary --auto-download production
   fi
   cd build
   make -j4
-  cp bin/cvc5$EXT $BIN
+  cp "bin/cvc5$EXT" "$BIN"
   popd
   cleanup_bins
 }
@@ -246,6 +234,7 @@ build_yices() {
     macOS) autoreconf ;;
     Windows) autoconf ;;
   esac
+  # shellcheck disable=SC2086
   ./configure CFLAGS=-fPIC $CONFIGURE_FLAGS
   make -j4
   make install
@@ -254,19 +243,20 @@ build_yices() {
   pushd repos/libpoly
   cd build
   if $IS_WIN; then
-    cmake .. -DCMAKE_TOOLCHAIN_FILE=$TOP/scripts/libpoly-x86_64-w64-mingw32.cmake -DCMAKE_INSTALL_PREFIX=$TOP/install-root -DGMP_INCLUDE_DIR=$TOP/install-root/include -DGMP_LIBRARY=$TOP/install-root/lib/libgmp.a -DLIBPOLY_BUILD_PYTHON_API=Off -GNinja
+    cmake .. -DCMAKE_TOOLCHAIN_FILE="$TOP/scripts/libpoly-x86_64-w64-mingw32.cmake" -DCMAKE_INSTALL_PREFIX="$TOP/install-root" -DGMP_INCLUDE_DIR="$TOP/install-root/include" -DGMP_LIBRARY="$TOP/install-root/lib/libgmp.a" -DLIBPOLY_BUILD_PYTHON_API=Off -GNinja
   else
-    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX=$TOP/install-root -GNinja
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX="$TOP/install-root" -GNinja
   fi
   ninja -j4 static_poly
-  cp ./src/libpoly.a $TOP/install-root/lib
-  mkdir -p $TOP/install-root/include/poly
-  cp -r ../include/*.h $TOP/install-root/include/poly
+  cp ./src/libpoly.a "$TOP/install-root/lib"
+  mkdir -p "$TOP/install-root/include/poly"
+  cp -r ../include/*.h "$TOP/install-root/include/poly"
   popd
 
   pushd repos/yices2
   autoconf
   if $IS_WIN; then
+    # shellcheck disable=SC2086
     ./configure --enable-mcsat $CONFIGURE_FLAGS
     dos2unix src/frontend/smt2/smt2_tokens.txt
     dos2unix src/frontend/smt2/smt2_keywords.txt
@@ -275,11 +265,12 @@ build_yices() {
     dos2unix src/frontend/yices/yices_keywords.txt
     cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
   else
+    # shellcheck disable=SC2086
     ./configure --enable-mcsat $CONFIGURE_FLAGS
   fi
   make -j4 static-bin
-  cp build/*/static_bin/* $BIN
-  if [ -e $BIN/yices_smt2$EXT ] ; then cp $BIN/yices_smt2$EXT $BIN/yices-smt2$EXT ; else true ; fi
+  cp build/*/static_bin/* "$BIN"
+  if [ -e "$BIN/yices_smt2$EXT" ] ; then cp "$BIN/yices_smt2$EXT" "$BIN/yices-smt2$EXT" ; else true ; fi
   popd
   cleanup_bins
 }
@@ -294,8 +285,8 @@ build_z3-4.8.14() {
 
 build_z3() {
   Z3_BIN="z3-$1"
-  pushd repos/$Z3_BIN
-  patch -p1 -i $PATCHES/$Z3_BIN-gcc-15-fix.patch
+  pushd "repos/$Z3_BIN"
+  patch -p1 -i "$PATCHES/$Z3_BIN-gcc-15-fix.patch"
   mkdir build
   cd build
   if $IS_WIN ; then
@@ -304,56 +295,22 @@ build_z3() {
     cmake .. -DCMAKE_BUILD_TYPE=Release -GNinja
   fi
   ninja -j4
-  cp z3$EXT $BIN/$Z3_BIN$EXT
+  cp "z3$EXT" "$BIN/$Z3_BIN$EXT"
   popd
   cleanup_bins
 }
 
 cleanup_bins() {
-  $IS_WIN || chmod +x $BIN/*
-  strip $BIN/*
+  $IS_WIN || chmod +x "$BIN"/*
+  strip "$BIN"/*
 }
 
-# Test a solver by running it on the test problem
-# Usage: test_solver <solver_name>
-test_solver() {
-  SOLVER="$1"
-  echo "Testing $SOLVER with $PROBLEM..."
-
-  cd "$BIN"
-
-  # Run the solver and capture output
-  case "$SOLVER" in
-    abc)
-      RESULT=$(deps abc$EXT && ./abc$EXT -S "%blast; &sweep -C 5000; &syn4; &cec -m -s" < "$PROBLEM")
-      ;;
-    boolector)
-      RESULT=$(./boolector$EXT --version && deps boolector$EXT && ./boolector$EXT "$PROBLEM" --no-exit-codes)
-      ;;
-    yices)
-      RESULT=$(./yices-smt2$EXT --version && deps yices-smt2$EXT && ./yices-smt2$EXT "$PROBLEM")
-      ;;
-    *)
-      # Most solvers use the same invocation pattern
-      RESULT=$(./$SOLVER$EXT --version && deps $SOLVER$EXT && ./$SOLVER$EXT "$PROBLEM")
-      ;;
-  esac
-
-  # Check if the result contains "unsat"
-  if echo "$RESULT" | grep -q "unsat"; then
-    echo "✓ Test passed for $SOLVER (returned unsat)"
-  else
-    echo "✗ Test failed for $SOLVER: expected 'unsat', got:"
-    echo "$RESULT"
-    return 1
-  fi
-}
-
-# GitHub Actions' Ubuntu runners have somewhat unusual naming conventions. For
+# GitHub Actions' runners have somewhat unusual naming conventions. For
 # instance, there are both ubuntu-24.04 and ubuntu-24.04-arm runners. Each of
 # them has a distinct architecture (the former is x86-64, and the latter is
 # ARM64), but only ubuntu-24.04-arm explicitly encodes its architecture in the
-# runner name.
+# runner name. Similarly, there is a macos-15-intel runner that encodes the
+# architecture (Intel x86-64) in the runner name.
 #
 # For the sake of producing what4-solvers binary distributions, we would like to
 # normalize runner and container names. (We attach the architecture to the
