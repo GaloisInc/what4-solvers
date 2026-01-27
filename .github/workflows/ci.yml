@@ -178,19 +178,25 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           apt-get update
-          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git
+          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc
         if: contains(matrix.container, 'ubuntu')
 
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+      - name: Install Python and Python libraries (Ubuntu)
+        run: |
+          apt-get install -y python3 python3-pip python3-venv
+          # Use --break-system-packages only if pip supports it (pip >= 23.0)
+          if pip3 install --help | grep -q break-system-packages; then
+            pip3 install meson pyparsing toml tomli --break-system-packages
+          else
+            pip3 install meson pyparsing toml tomli
+          fi
         if: contains(matrix.container, 'ubuntu')
 
-      - name: Install Python libraries
+      - name: Install Python libraries (Red Hat UBI 9)
         run: |
           python3 -m pip install --upgrade pip
           pip3 install meson pyparsing toml tomli
+        if: contains(matrix.container, 'redhat')
 
       - name: Install Java
         uses: actions/setup-java@v3
