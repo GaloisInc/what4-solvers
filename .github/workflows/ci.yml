@@ -35,6 +35,7 @@ jobs:
   # This job captures native runners that cannot be neatly containerized
   build-native:
     runs-on: ${{ matrix.os }}
+    needs: check
     strategy:
       fail-fast: false
       matrix:
@@ -131,6 +132,7 @@ jobs:
 
   build-container:
     runs-on: ${{ matrix.os }}
+    needs: check
     # We use unpinned image because downstream users typically use unpinned images as well.
     # By using the `latest` tag we aim to catch any future breaking changes here.
     container:
