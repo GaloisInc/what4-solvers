@@ -189,8 +189,8 @@ jobs:
 
       - name: Install Python libraries
         run: |
-          python3 -m pip install --upgrade pip --root-user-action
-          pip3 install meson pyparsing toml tomli
+          #python3 -m pip install --upgrade pip
+          pip3 install --break-system-packages meson pyparsing toml tomli
 
       - name: Install Java
         uses: actions/setup-java@v3
