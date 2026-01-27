@@ -178,7 +178,7 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           apt-get update
-          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc
+          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc curl cmake
         if: contains(matrix.container, 'ubuntu')
 
       - name: Install Python and Python libraries (Ubuntu)
