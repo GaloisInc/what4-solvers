@@ -50,12 +50,10 @@ ensure_static_gmp() {
     # On intel MacOS 15.x, gmp-6.3.0 started building broken libs full
     # of text relocations. Force --with-pic to stop this. Otherwise, gmp
     # succeeds, but the resulting library doesn't work.
-    # To make the set of configure flags slightly more consistent, we always use
-    # --with-pic on macOS, both on x86-64 and AArch64.
-    case "$RUNNER_OS" in
-      macOS) GMP_CONFIGURE_FLAGS=--with-pic;;
-      *) GMP_CONFIGURE_FLAGS=;;
-    esac
+    # On Linux, -fPIC is also required when building shared objects that link
+    # against this static library (e.g., bitwuzla's GMP C++ bindings).
+    # For consistency and to avoid relocation errors, always use --with-pic.
+    GMP_CONFIGURE_FLAGS=--with-pic
 
     ./configure --prefix="$TOP/install-root" --enable-static --disable-shared --enable-cxx $GMP_CONFIGURE_FLAGS
     make -j4

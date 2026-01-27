@@ -198,11 +198,9 @@ jobs:
           pip3 install meson pyparsing toml tomli
         if: contains(matrix.container, 'redhat')
 
-      - name: Install Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+      - name: Install Java (Ubuntu)
+        run: |
+          apt-get install -y openjdk-17-jdk
         if: contains(matrix.container, 'ubuntu')
 
       - uses: actions/checkout@v6
