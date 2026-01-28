@@ -303,17 +303,9 @@ cleanup_bins() {
   strip "$BIN"/*
 }
 
-# GitHub Actions' runners have somewhat unusual naming conventions. For
-# instance, there are both ubuntu-24.04 and ubuntu-24.04-arm runners. Each of
-# them has a distinct architecture (the former is x86-64, and the latter is
-# ARM64), but only ubuntu-24.04-arm explicitly encodes its architecture in the
-# runner name. Similarly, there is a macos-15-intel runner that encodes the
-# architecture (Intel x86-64) in the runner name.
-#
-# For the sake of producing what4-solvers binary distributions, we would like to
-# normalize runner and container names. (We attach the architecture to the
-# bindist name separately.)
-normalize_runner_name() {
+# Covert the container name into a standard OS-ARCH string
+# Add a new case when a new container is added.
+normalize_container_name() {
   ORIG_NAME="$1"
   case "$ORIG_NAME" in
     "ubuntu:24.04")
@@ -325,14 +317,16 @@ normalize_runner_name() {
     "redhat/ubi9:latest")
       echo "redhat-ubi9"
       ;;
-    *)
-      # Default: strip "-arm" suffix from runner names
-      NORMALIZED_NAME=${ORIG_NAME%"-arm"}
-      # Strip -intel suffix (for macOS Intel runners)
-      NORMALIZED_NAME=${NORMALIZED_NAME%"-intel"}
-      echo "$NORMALIZED_NAME"
-      ;;
   esac
+}
+
+# The only runner that needs to be normalized is macos-15-intel
+# We strip the `-intel` suffix
+normalize_runner_name() {
+  ORIG_NAME="$1"
+  # Strip -intel suffix (for macOS Intel runners)
+  NORMALIZED_NAME=${ORIG_NAME%"-intel"}
+  echo "$NORMALIZED_NAME"
 }
 
 COMMAND="$1"
