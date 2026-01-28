@@ -145,6 +145,7 @@ jobs:
         os: [ubuntu-24.04, ubuntu-24.04-arm]
         # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
         # each will be built in both arm and x86 versions
+        # if a ne containers is added, update normalize_container_name() function in ci.sh
         container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
@@ -207,7 +208,7 @@ jobs:
         run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
 
       - name: Normalize container name
-        run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.container }})" >> $GITHUB_ENV
+        run: echo "OS_NAME=$(.github/ci.sh normalize_container_name ${{ matrix.container }})" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v4
         with:
