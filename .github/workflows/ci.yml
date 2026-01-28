@@ -182,12 +182,9 @@ jobs:
 
       - name: Install Python and Python libraries (Ubuntu)
         run: |
-          # Use --break-system-packages only if pip supports it (pip >= 23.0)
-          if pip3 install --help | grep -q break-system-packages; then
-            pip3 install meson pyparsing toml tomli --break-system-packages
-          else
-            pip3 install meson pyparsing toml tomli
-          fi
+          python3 -m venv /opt/venv
+          /opt/venv/bin/pip install meson pyparsing toml tomli
+          echo "PATH=/opt/venv/bin:$PATH" >> $GITHUB_ENV
         if: contains(matrix.container, 'ubuntu')
 
       - name: Install Python libraries (Red Hat UBI 9)
