@@ -317,6 +317,10 @@ normalize_container_name() {
     "redhat/ubi9:latest")
       echo "redhat-ubi9"
       ;;
+    *)
+      echo "Error: Unknown container name '$ORIG_NAME'" >&2
+      exit 1
+      ;;
   esac
 }
 
