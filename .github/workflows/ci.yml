@@ -130,11 +130,12 @@ jobs:
           path: bin
           name: ${{ env.OS_NAME }}-${{ runner.arch }}-${{ matrix.solver }}-bin
 
+  # We use an unpinned image because downstream users typically use unpinned images as well.
+  # By using the `latest` tag we aim to catch any future breaking changes here.
   build-container:
+    name: build-container (${{ matrix.container }}, ${{ matrix.solver }})
     runs-on: ${{ matrix.os }}
     needs: check
-    # We use an unpinned image because downstream users typically use unpinned images as well.
-    # By using the `latest` tag we aim to catch any future breaking changes here.
     container:
       image: ${{ matrix.container }}
     strategy:
