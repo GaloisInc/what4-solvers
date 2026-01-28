@@ -160,10 +160,7 @@ jobs:
 
           # Install additional dependencies from EPEL
           dnf install -y --enablerepo=epel lzip
-        if: contains(matrix.container, 'redhat')
 
-      - name: Install additional dependencies (Red Hat UBI 9)
-        run: |
           # Build and install gperf from source (not available in UBI 9 repos)
           # Required by: Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
           curl -sL http://ftp.gnu.org/gnu/gperf/gperf-3.1.tar.gz | tar xz
@@ -178,12 +175,11 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           apt-get update
-          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc curl cmake libgmp-dev
+          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc curl cmake libgmp-dev openjdk-17-jdk python3 python3-pip python3-venv
         if: contains(matrix.container, 'ubuntu')
 
       - name: Install Python and Python libraries (Ubuntu)
         run: |
-          apt-get install -y python3 python3-pip python3-venv
           # Use --break-system-packages only if pip supports it (pip >= 23.0)
           if pip3 install --help | grep -q break-system-packages; then
             pip3 install meson pyparsing toml tomli --break-system-packages
@@ -197,11 +193,6 @@ jobs:
           python3 -m pip install --upgrade pip
           pip3 install meson pyparsing toml tomli
         if: contains(matrix.container, 'redhat')
-
-      - name: Install Java (Ubuntu)
-        run: |
-          apt-get install -y openjdk-17-jdk
-        if: contains(matrix.container, 'ubuntu')
 
       - uses: actions/checkout@v6
         with:
