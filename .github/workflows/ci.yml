@@ -143,7 +143,7 @@ jobs:
         # the base runner OS - we use the latest ubuntu, both in x86 and arm64
         os: [ubuntu-24.04, ubuntu-24.04-arm]
         # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
-        # each will be built in both arm and x86 version
+        # each will be built in both arm and x86 versions
         container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
