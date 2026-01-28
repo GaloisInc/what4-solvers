@@ -303,7 +303,7 @@ cleanup_bins() {
   strip "$BIN"/*
 }
 
-# Covert the container name into a standard OS-ARCH string
+# Convert the container name into a standard OS-ARCH string
 # Add a new case when a new container is added.
 normalize_container_name() {
   ORIG_NAME="$1"
