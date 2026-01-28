@@ -50,12 +50,10 @@ ensure_static_gmp() {
     # On intel MacOS 15.x, gmp-6.3.0 started building broken libs full
     # of text relocations. Force --with-pic to stop this. Otherwise, gmp
     # succeeds, but the resulting library doesn't work.
-    # To make the set of configure flags slightly more consistent, we always use
-    # --with-pic on macOS, both on x86-64 and AArch64.
-    case "$RUNNER_OS" in
-      macOS) GMP_CONFIGURE_FLAGS=--with-pic;;
-      *) GMP_CONFIGURE_FLAGS=;;
-    esac
+    # On Linux, -fPIC is also required when building shared objects that link
+    # against this static library (e.g., bitwuzla's GMP C++ bindings).
+    # For consistency and to avoid relocation errors, always use --with-pic.
+    GMP_CONFIGURE_FLAGS=--with-pic
 
     ./configure --prefix="$TOP/install-root" --enable-static --disable-shared --enable-cxx $GMP_CONFIGURE_FLAGS
     make -j4
@@ -305,22 +303,33 @@ cleanup_bins() {
   strip "$BIN"/*
 }
 
-# GitHub Actions' runners have somewhat unusual naming conventions. For
-# instance, there are both ubuntu-24.04 and ubuntu-24.04-arm runners. Each of
-# them has a distinct architecture (the former is x86-64, and the latter is
-# ARM64), but only ubuntu-24.04-arm explicitly encodes its architecture in the
-# runner name. Similarly, there is a macos-15-intel runner that encodes the
-# architecture (Intel x86-64) in the runner name.
-#
-# For the sake of producing what4-solvers binary distributions, we would like to
-# normalize runner names by stripping architecture suffixes. (We attach the
-# architecture to the bindist name separately.)
+# Convert the container name into a standard OS-ARCH string
+# Add a new case when a new container is added.
+normalize_container_name() {
+  ORIG_NAME="$1"
+  case "$ORIG_NAME" in
+    "ubuntu:24.04")
+      echo "ubuntu-24.04"
+      ;;
+    "ubuntu:22.04")
+      echo "ubuntu-22.04"
+      ;;
+    "redhat/ubi9:latest")
+      echo "redhat-ubi9"
+      ;;
+    *)
+      echo "Error: Unknown container name '$ORIG_NAME'" >&2
+      exit 1
+      ;;
+  esac
+}
+
+# The only runner that needs to be normalized is macos-15-intel
+# We strip the `-intel` suffix
 normalize_runner_name() {
   ORIG_NAME="$1"
-  # Strip -arm suffix (for Ubuntu ARM runners)
-  NORMALIZED_NAME=${ORIG_NAME%"-arm"}
   # Strip -intel suffix (for macOS Intel runners)
-  NORMALIZED_NAME=${NORMALIZED_NAME%"-intel"}
+  NORMALIZED_NAME=${ORIG_NAME%"-intel"}
   echo "$NORMALIZED_NAME"
 }
 

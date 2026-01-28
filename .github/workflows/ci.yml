@@ -31,12 +31,15 @@ jobs:
           shellcheck -x -P SCRIPTDIR .github/ci.sh
           shellcheck scripts/download-solvers.sh
           shellcheck scripts/test-solvers.sh
-  build:
+
+  # This job captures native runners that cannot be neatly containerized
+  build-native:
     runs-on: ${{ matrix.os }}
+    needs: check
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-22.04-arm, ubuntu-24.04-arm, ubuntu-22.04, macos-15, macos-15-intel, windows-2022]
+        os: [macos-15, macos-15-intel, windows-2022]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
       # This is necessary to clone the yices2 repo on Windows, as some of the
@@ -44,19 +47,7 @@ jobs:
       # 260 characters.
       - name: Enable long file paths on Windows
         run: git config --system core.longpaths true
-        if: runner.os == 'Windows'
-
-      - uses: actions/checkout@v6
-        with:
-          submodules: true
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Install dependencies (Ubuntu)
-        run: |
-          sudo apt-get update
-          sudo apt-get install gperf automake autoconf libreadline-dev lzip ninja-build
-        if: runner.os == 'Linux'
+        if: contains(matrix.os, 'windows')
 
       - name: Install dependencies (macOS)
         run: |
@@ -66,7 +57,7 @@ jobs:
           # work around this, we install put GNU sed before macOS's sed on the
           # PATH.
           echo "PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH" >> $GITHUB_ENV
-        if: runner.os == 'macOS'
+        if: contains(matrix.os, 'macos')
 
       - name: Install dependencies (Windows)
         uses: msys2/setup-msys2@v2
@@ -90,7 +81,7 @@ jobs:
             patch
             tar
             unzip
-        if: runner.os == 'Windows'
+        if: contains(matrix.os, 'windows')
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -107,6 +98,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+          fetch-depth: 0
 
       - name: build_solver (non-Windows)
         run: .github/ci.sh build_${{ matrix.solver }}
@@ -126,9 +122,6 @@ jobs:
         run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
         if: runner.os == 'Windows'
 
-      # Needed to normalize runner names by stripping architecture suffixes:
-      # - "ubuntu-24.04-arm" -> "ubuntu-24.04" (avoids mentioning ARM twice, #63)
-      # - "macos-15-intel" -> "macos-15" (avoids redundant intel in name, #78)
       - name: Normalize runner name
         run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
 
@@ -137,16 +130,23 @@ jobs:
           path: bin
           name: ${{ env.OS_NAME }}-${{ runner.arch }}-${{ matrix.solver }}-bin
 
-  build-ubi9:
+  # We use an unpinned image because downstream users typically use unpinned images as well.
+  # By using the `latest` tag we aim to catch any future breaking changes here.
+  build-container:
+    name: build-container (${{ matrix.container }}, ${{ matrix.solver }})
     runs-on: ${{ matrix.os }}
-    # We use unpinned image because downstream users typically use unpinned images as well.
-    # By using the `latest` tag we aim to catch any future breaking changes here.
+    needs: check
     container:
-      image: redhat/ubi9:latest # zizmor: ignore[unpinned-images]
+      image: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
+        # the base runner OS - we use the latest ubuntu, both in x86 and arm64
         os: [ubuntu-24.04, ubuntu-24.04-arm]
+        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
+        # each will be built in both arm and x86 versions
+        # if a new container is added, update the normalize_container_name() function in ci.sh
+        container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
 
@@ -163,8 +163,6 @@ jobs:
           # Install additional dependencies from EPEL
           dnf install -y --enablerepo=epel lzip
 
-      - name: Install additional dependencies (Red Hat UBI 9)
-        run: |
           # Build and install gperf from source (not available in UBI 9 repos)
           # Required by: Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
           curl -sL http://ftp.gnu.org/gnu/gperf/gperf-3.1.tar.gz | tar xz
@@ -174,17 +172,25 @@ jobs:
           # Python: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
           # Java: Required by CVC4, CVC5 (for ANTLR)
           dnf install -y python3 python3-pip java-17-openjdk-devel
+        if: contains(matrix.container, 'redhat')
+
+      - name: Install dependencies (Ubuntu)
+        run: |
+          apt-get update
+          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc curl cmake libgmp-dev openjdk-17-jdk python3 python3-pip python3-venv
+        if: contains(matrix.container, 'ubuntu')
 
       - name: Install Python libraries
         run: |
-          python3 -m pip install --upgrade pip
-          pip3 install meson pyparsing toml tomli
+          python3 -m venv /opt/venv
+          # setuptools provides distutils compatibility for Python 3.12+ (needed by z3-4.8.8)
+          /opt/venv/bin/pip install setuptools meson pyparsing toml tomli
+          echo "PATH=/opt/venv/bin:$PATH" >> $GITHUB_ENV
 
       - uses: actions/checkout@v6
         with:
           submodules: true
           fetch-depth: 0
-          persist-credentials: false
 
       - name: build_solver
         run: .github/ci.sh build_${{ matrix.solver }}
@@ -192,8 +198,8 @@ jobs:
       - name: test_solver
         run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
 
-      - name: Set OS name
-        run: echo "OS_NAME=redhat-ubi9" >> $GITHUB_ENV
+      - name: Normalize container name
+        run: echo "OS_NAME=$(.github/ci.sh normalize_container_name ${{ matrix.container }})" >> $GITHUB_ENV
 
       - uses: actions/upload-artifact@v4
         with:
@@ -202,7 +208,7 @@ jobs:
 
   package_solvers:
     runs-on: ubuntu-latest
-    needs: [build, build-ubi9]
+    needs: [build-native, build-container]
     strategy:
       fail-fast: false
       matrix:
@@ -302,6 +308,6 @@ jobs:
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
     runs-on: ubuntu-24.04
-    needs: [build, build-ubi9]
+    needs: [build-native, build-container]
     steps:
       - run: "true"
