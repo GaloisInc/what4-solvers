@@ -49,6 +49,13 @@ jobs:
         run: git config --system core.longpaths true
         if: contains(matrix.os, 'windows')
 
+      - name: Import signing certificate (macOS)
+        uses: apple-actions/import-codesign-certs@v3
+        if: contains(matrix.os, 'macos')
+        with:
+          p12-file-base64: ${{ secrets.APPLE_P12_CERTIFICATE }}
+          p12-password: ${{ secrets.APPLE_P12_PASSWORD }}
+
       - name: Install dependencies (macOS)
         run: |
           brew update
@@ -112,6 +119,17 @@ jobs:
         shell: msys2 {0}
         run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os == 'Windows'
+
+      - name: Sign binary (macOS)
+        if: contains(matrix.os, 'macos')
+        env:
+          IDENTITY_NAME: ${{ secrets.APPLE_P12_IDENTITY_NAME }}
+        run: |
+          codesign \
+            --force \
+            --options runtime \
+            --sign "$IDENTITY_NAME" \
+            bin/${{ matrix.solver }}
 
       - name: test_solver (non-Windows)
         run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
@@ -299,6 +317,45 @@ jobs:
         with:
           path: bin
           name: ${{ matrix.os }}-${{ matrix.arch }}-bin
+
+  # Notarize the macOS binaries. Note that Apple's documentation suggests that
+  # you shouldn't notarize more than 75 times in one day
+  # (https://developer.apple.com/documentation/security/customizing-the-notarization-workflow#Avoid-long-notarization-response-times-and-size-limits),
+  # so as a precaution, we only perform this step when a commit is on the
+  # `main` branch (and not in pull requests).
+  notarize_macos_solvers:
+    runs-on: ${{ matrix.os }}
+    needs: [package_solvers]
+    if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') &&
+        github.event.pull_request.head.repo.fork == false &&
+        github.repository_owner == 'GaloisInc'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15]
+        arch: [ARM64, X64]
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: "${{ matrix.os }}-${{ matrix.arch }}-bin"
+          path: bin
+
+      - name: Zip binaries
+        run: |
+          zip binaries.zip bin/*
+
+      - name: Notarize binaries
+        env:
+          KEY_ID: ${{ secrets.APPLE_P8_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APPLE_P8_ISSUER_ID }}
+          API_KEY: ${{ secrets.APPLE_P8_API_KEY }}
+        run: |
+          echo "$API_KEY" > "AuthKey_$KEY_ID.p8"
+          xcrun notarytool submit binaries.zip \
+            --key "AuthKey_$KEY_ID.p8" \
+            --key-id "$KEY_ID" \
+            --issuer "$ISSUER_ID" \
+            --wait
 
   # Indicates sufficient CI success for the purposes of mergify merging the pull
   # request, see .github/mergify.yml. This is done instead of enumerating each
