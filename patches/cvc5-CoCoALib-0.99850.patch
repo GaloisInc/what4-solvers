@@ -1,0 +1,332 @@
+diff --git a/cmake/FindCoCoA.cmake b/cmake/FindCoCoA.cmake
+index 25ec72cdb..09408b30a 100644
+--- a/cmake/FindCoCoA.cmake
++++ b/cmake/FindCoCoA.cmake
+@@ -59,7 +59,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
+ 
+   include(ExternalProject)
+ 
+-  set(CoCoA_VERSION "0.99800")
++  set(CoCoA_VERSION "0.99850")
+ 
+   if("${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
+     # use $(MAKE) instead of "make" to allow for parallel builds
+@@ -86,15 +86,17 @@ if(NOT CoCoA_FOUND_SYSTEM)
+   ExternalProject_Add(
+     CoCoA-EP
+     ${COMMON_EP_CONFIG}
+-    URL https://github.com/cvc5/cvc5-deps/blob/main/CoCoALib-${CoCoA_VERSION}.tgz?raw=true
+-    URL_HASH SHA256=f8bb227e2e1729e171cf7ac2008af71df25914607712c35db7bcb5a044a928c6
++    URL https://cocoa.altervista.org/cocoalib/tgz/CoCoALib-${CoCoA_VERSION}.tgz
++    URL_HASH SHA256=d3e7af0153c6950f83f4e3556540f0177fedf5179f0f7667b7d6d670268fd445
+     # CoCoA requires C++14, but the check does not work with compilers that
+     # default to C++17 or newer. The patch fixes the check.
+     PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
+         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-${CoCoA_VERSION}-trace.patch
+     BUILD_IN_SOURCE YES
++    # We only need CoCoALib itself, not CoCoA-5; --only-cocoalib avoids the
++    # otherwise mandatory configure-time dependency on BOOST.
+     CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY}
+-        --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${CoCoA_CXXFLAGS}
++        --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${CoCoA_CXXFLAGS} --only-cocoalib
+     BUILD_COMMAND ${make_cmd} library
+     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcocoa.a
+   )
+diff --git a/cmake/deps-utils/CoCoALib-0.99850-trace.patch b/cmake/deps-utils/CoCoALib-0.99850-trace.patch
+new file mode 100644
+index 000000000..e6b037d87
+--- /dev/null
++++ b/cmake/deps-utils/CoCoALib-0.99850-trace.patch
+@@ -0,0 +1,213 @@
++diff --git a/configuration/cxx14.sh b/configuration/cxx14.sh
++index e974ab6..65cd94e 100755
++--- a/configuration/cxx14.sh
+++++ b/configuration/cxx14.sh
++@@ -51,7 +51,7 @@ int main() {
++ EOF
++ 
++ # First try with no compiler flag...
++-"$CXX"  language-version.C  -o language-version  >> LogFile  2>& 1 
+++"$CXX" $CXXFLAGS language-version.C  -o language-version  >> LogFile  2>& 1 
++ if [ $? -ne 0 ]
++ then
++     echo "ERROR: compilation unexpectedly failed; is $CXX a c++ compiler?   $SCRIPT_NAME" > /dev/stderr
++@@ -76,7 +76,7 @@ fi
++ # Compilation without flag is not C++14 standard; try with -std=c++14
++ 
++ CXX14="-std=c++14"
++-"$CXX"  $CXX14  language-version.C  -o language-version  >> LogFile  2>& 1 
+++"$CXX" $CXXFLAGS  $CXX14  language-version.C  -o language-version  >> LogFile  2>& 1 
++ if [ $? -ne 0 ]
++ then
++     echo "ERROR: compilation with flag $CXX14 failed   $SCRIPT_NAME"                      > /dev/stderr
++diff --git a/configuration/gmp-version.sh b/configuration/gmp-version.sh
++index 4fe33b8..2a17749 100755
++--- a/configuration/gmp-version.sh
+++++ b/configuration/gmp-version.sh
++@@ -74,7 +74,7 @@ EOF
++ 
++ # Use c++ compiler specified in CXX; no need to specify libgmp as all info is in header file!!
++ echo "$CXX -I"$EXTLIB_DIR_FULL/include"  test-gmp-version.C  -o test-gmp-version"  > LogFile
++-$CXX -I"$EXTLIB_DIR_FULL/include"  test-gmp-version.C  -o test-gmp-version  >> LogFile 2>&1
+++$CXX $CXXFLAGS -I"$EXTLIB_DIR_FULL/include"  test-gmp-version.C  -o test-gmp-version  >> LogFile 2>&1
++ 
++ # Check whether compilation failed; if so, complain.
++ if [ $? -ne 0 ]
++diff --git a/configuration/shell-fns.sh b/configuration/shell-fns.sh
++index 46d8155..3687819 100755
++--- a/configuration/shell-fns.sh
+++++ b/configuration/shell-fns.sh
++@@ -27,13 +27,13 @@ mktempdir()
++ echounderline()
++ {
++   echo "$*"
++-  echo "$*" | tr "\040-\377" "[-*]"
+++  echo "$*" | tr "\040-\377" "-"
++ }
++ 
++ echobox()
++ {
++   mesg=">>>>  $*  <<<<"
++-  dashes=`echo "$mesg" | tr "\040-\377" "[-*]"`
+++  dashes=`echo "$mesg" | tr "\040-\377" "-"`
++   echo "$dashes"
++   echo "$mesg"
++   echo "$dashes"
++@@ -42,7 +42,7 @@ echobox()
++ echoerror()
++ {
++   mesg=">>>>>  $*  <<<<<"
++-  equals=`echo "$mesg" | tr "\040-\377" "[=*]"`
+++  equals=`echo "$mesg" | tr "\040-\377" "="`
++   echo "$equals"
++   echo "$mesg"
++   echo "$equals"
++diff --git a/configuration/verify-compiler.sh b/configuration/verify-compiler.sh
++index b5f5a95..8c28263 100755
++--- a/configuration/verify-compiler.sh
+++++ b/configuration/verify-compiler.sh
++@@ -58,16 +58,6 @@ int main()
++ }
++ EOF
++ 
++-# Try plain compiler (without CXXFLAGS):
++-$CXX test-compiler-type.C -o test-compiler-type  > LogFile  2>&1
++-if [ $? -ne 0 -o \! -f test-compiler-type -o \! -x test-compiler-type ]
++-then
++-  echo "ERROR: Are you sure \"$CXX\" is a C++ compiler?   $SCRIPT_NAME"  > /dev/stderr
++-  echo "LOGFILE: $TMP_DIR/LogFile   $SCRIPT_NAME"                        > /dev/stderr
++-  exit 1
++-fi
++-/bin/rm test-compiler-type  # not necessary, just being tidy :-)
++-
++ # Try compiler with CXXFLAGS:
++ $CXX $CXXFLAGS test-compiler-type.C -o test-compiler-type  > LogFile  2>&1
++ if [ $? -ne 0 -o \! -f test-compiler-type -o \! -x test-compiler-type ]
++diff --git a/include/CoCoA/MakeUnifiedHeader.sh b/include/CoCoA/MakeUnifiedHeader.sh
++index e0e713b..156461b 100755
++--- a/include/CoCoA/MakeUnifiedHeader.sh
+++++ b/include/CoCoA/MakeUnifiedHeader.sh
++@@ -33,7 +33,7 @@ fi
++ echobox()
++ {
++   mesg=">>>>  $*  <<<<"
++-  dashes=`echo "$mesg" | tr "\040-\377" "[-*]"`
+++  dashes=`echo "$mesg" | tr "\040-\377" "-"`
++   echo "$dashes"
++   echo "$mesg"
++   echo "$dashes"
++diff --git a/include/CoCoA/TmpGPoly.H b/include/CoCoA/TmpGPoly.H
++index 4c4d51e..b57fc17 100644
++--- a/include/CoCoA/TmpGPoly.H
+++++ b/include/CoCoA/TmpGPoly.H
++@@ -29,6 +29,7 @@
++ #include "CoCoA/TmpGTypes.H"
++ #include "CoCoA/utils.H"
++ 
+++#include<functional>
++ #include<list>
++ // using std::list; // for GPolyList; GPolyPtrList;
++ #include<vector>
++@@ -46,6 +47,12 @@ enum ClearMarker {clear};
++ 
++ class GPoly;
++ 
+++extern bool handlersEnabled;
+++extern std::function<void(ConstRefRingElem p, ConstRefRingElem q, ConstRefRingElem s)> sPolyHandler;
+++extern std::function<void(ConstRefRingElem p)> reductionStartHandler;
+++extern std::function<void(ConstRefRingElem q)> reductionStepHandler;
+++extern std::function<void(ConstRefRingElem r)> reductionEndHandler;
+++
++ 
++ typedef std::list<GPoly> GPolyList;
++ 
++diff --git a/src/AlgebraicCore/CheckSourceFiles.sh b/src/AlgebraicCore/CheckSourceFiles.sh
++index b669e0f..cb0a66c 100755
++--- a/src/AlgebraicCore/CheckSourceFiles.sh
+++++ b/src/AlgebraicCore/CheckSourceFiles.sh
++@@ -24,7 +24,7 @@ do
++ done
++ sort "$TMPFILE2" > "$TMPFILE1"
++ 
++-/bin/ls -d ./*.C | cut -b 3- > "$TMPFILE2"
+++/bin/ls -d ./*.C | cut -b 3- | sort > "$TMPFILE2"
++ 
++ cmp "$TMPFILE1" "$TMPFILE2" > /dev/null
++ if [ $? = 0 ]
++diff --git a/src/AlgebraicCore/PolyRing-content.C b/src/AlgebraicCore/PolyRing-content.C
++index c5d0a0a..36d6d2b 100644
++--- a/src/AlgebraicCore/PolyRing-content.C
+++++ b/src/AlgebraicCore/PolyRing-content.C
++@@ -33,6 +33,7 @@
++ #include "CoCoA/convert.H"
++ #include "CoCoA/error.H"
++ #include "CoCoA/utils.H"  // for len
+++#include "CoCoA/TmpGPoly.H"
++ 
++ 
++ #include <vector>
++@@ -128,7 +129,9 @@ namespace CoCoA
++   {
++     const PolyRing Rx = owner(f);
++     RingElem ans(Rx);
+++    if (handlersEnabled) reductionStartHandler(f);
++     Rx->myMonic(raw(ans), raw(f));
+++    if (handlersEnabled) reductionEndHandler(ans);
++     return ans;
++   }
++ 
++diff --git a/src/AlgebraicCore/SparsePolyOps-reduce.C b/src/AlgebraicCore/SparsePolyOps-reduce.C
++index 30e407a..b8789e2 100644
++--- a/src/AlgebraicCore/SparsePolyOps-reduce.C
+++++ b/src/AlgebraicCore/SparsePolyOps-reduce.C
++@@ -145,6 +145,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
++       s->myUpdate(F, *g);
++       //      std::cout << "ReduceActiveLM after s->myUpdate" << std::endl;
++       F->myReduce(poly(*g), NumTerms(*g));
+++      if ( handlersEnabled ) reductionStepHandler(poly(*g));
++     }//while
++   }//ReduceActiveLM
++ 
++@@ -283,6 +284,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
++   void GPoly::myReduce(const Reductors& theReductors)
++   {
++     if ( IsZero(*this) ) return;
+++    if ( handlersEnabled ) reductionStartHandler(myPoly());
++     ReductionCog F = ChooseReductionCogGeobucket(myGRingInfo());
++     //    std::cout << "myreduce1: F is " << F << std::endl;
++     F->myAssignReset(myPolyValue, myNumTerms); // myPolyValue gets 0
++@@ -298,6 +300,7 @@ degree HereForProfilingOnlyWDeg(ConstRefPPMonoidElem cofactor1)
++     if ( !IsZero(*this) && !IsOne(myLCValue) ) // makes myPolyValue monic
++       if ( myGRingInfo().myCoeffRingType()==CoeffEncoding::Field )
++         myGRingInfo().myNewSPR()->myDivByCoeff(raw(myPolyValue), raw(myLCValue));
+++    if ( handlersEnabled ) reductionEndHandler(myPoly());
++     // if CoeffEncoding::Field myRelease does NOT make poly monic
++     // if CoeffEncoding::FrFldOfGCDDomain myRelease makes poly content free
++   }
++diff --git a/src/AlgebraicCore/TmpGPoly.C b/src/AlgebraicCore/TmpGPoly.C
++index 3163ca9..c10b8c2 100644
++--- a/src/AlgebraicCore/TmpGPoly.C
+++++ b/src/AlgebraicCore/TmpGPoly.C
++@@ -47,6 +47,11 @@ using std::vector;
++ namespace CoCoA
++ {  
++ 
+++  bool handlersEnabled = false;
+++  std::function<void(ConstRefRingElem p, ConstRefRingElem q, ConstRefRingElem s)> sPolyHandler = nullptr;
+++  std::function<void(ConstRefRingElem p)> reductionStartHandler = nullptr;
+++  std::function<void(ConstRefRingElem q)> reductionStepHandler = nullptr;
+++  std::function<void(ConstRefRingElem r)> reductionEndHandler = nullptr;
++ 
++   //---------class GPoly-------------------------------
++ 
++@@ -291,7 +296,10 @@ void GPoly::myUpdateLenLPPLCDegComp()
++     if (the_gp.IsInputPoly())
++       myPolyValue = poly(the_gp.myFirstGPoly());
++     else
+++    {
++       myPolySetSPoly(the_gp.myFirstGPoly(), the_gp.mySecondGPoly());
+++      if ( handlersEnabled ) sPolyHandler(the_gp.myFirstGPoly().myPoly(), the_gp.mySecondGPoly().myPoly(), myPoly());
+++    }
++     myUpdateLenLPPLCDegComp();
++     myAge = the_age;
++     // MAX: do these things only if necessary.
+diff --git a/src/theory/ff/multi_roots.cpp b/src/theory/ff/multi_roots.cpp
+index 242906283..5ccbf35a9 100644
+--- a/src/theory/ff/multi_roots.cpp
++++ b/src/theory/ff/multi_roots.cpp
+@@ -118,6 +118,17 @@ bool isUnsat(const CoCoA::ideal& ideal)
+          && CoCoA::deg(gens[0]) <= 0;
+ }
+ 
++// True if a Groebner basis for `ideal` is available without (re)computation.
++//
++// Since CoCoALib 0.99850, computing the GBasis of the zero ideal no longer
++// marks it as stored (CoCoA::GBasis returns the trivially empty basis but
++// CoCoA::HasGBasis stays false); 0.99800 did mark it. The empty basis is always
++// available for the zero ideal, so treat that case as "has GBasis" too.
++bool hasGBasis(const CoCoA::ideal& ideal)
++{
++  return CoCoA::HasGBasis(ideal) || CoCoA::IsZero(ideal);
++}
++
+ template <typename T>
+ std::string ostring(const T& t)
+ {
+@@ -140,7 +151,7 @@ std::pair<size_t, CoCoA::RingElem> extractAssignment(
+ std::unordered_set<std::string> assignedVars(const CoCoA::ideal& ideal)
+ {
+   std::unordered_set<std::string> ret{};
+-  Assert(CoCoA::HasGBasis(ideal));
++  Assert(hasGBasis(ideal));
+   for (const auto& g : CoCoA::GBasis(ideal))
+   {
+     if (CoCoA::deg(g) == 1)
+@@ -166,7 +177,7 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal)
+   CoCoA::ring polyRing = ideal->myRing();
+   Assert(!isUnsat(ideal));
+   // first, we look for super-linear univariate polynomials.
+-  Assert(CoCoA::HasGBasis(ideal));
++  Assert(hasGBasis(ideal));
+   const auto& gens = CoCoA::GBasis(ideal);
+   for (const auto& p : gens)
+   {
+@@ -259,7 +270,7 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
+     const auto& ideal = ideals.back();
+     // make sure we have a GBasis:
+     GBasisTimeout(ideal, env.getResourceManager());
+-    Assert(CoCoA::HasGBasis(ideal));
++    Assert(hasGBasis(ideal));
+     // If the ideal is UNSAT, drop it.
+     if (isUnsat(ideal))
+     {
+@@ -270,7 +281,7 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
+     else if (allVarsAssigned(ideal))
+     {
+       std::unordered_map<size_t, CoCoA::RingElem> varNumToValue{};
+-      Assert(CoCoA::HasGBasis(ideal));
++      Assert(hasGBasis(ideal));
+       const auto& gens = CoCoA::GBasis(ideal);
+       size_t numIndets = CoCoA::NumIndets(polyRing);
+       Assert(gens.size() == numIndets);
+@@ -313,7 +324,7 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
+             << "level: " << branchers.size()
+             << ", brancher: " << branchers.back()->name()
+             << ", branch: " << choicePoly.value() << std::endl;
+-        Assert(CoCoA::HasGBasis(ideal));
++        Assert(hasGBasis(ideal));
+         std::vector<CoCoA::RingElem> newGens = CoCoA::GBasis(ideal);
+         newGens.push_back(choicePoly.value());
+         ideals.push_back(CoCoA::ideal(newGens));
+diff --git a/src/theory/ff/uni_roots.cpp b/src/theory/ff/uni_roots.cpp
+index 5746def2e..c8b5ee58a 100644
+--- a/src/theory/ff/uni_roots.cpp
++++ b/src/theory/ff/uni_roots.cpp
+@@ -29,7 +29,6 @@
+ #include <CoCoA/RingZZ.H>
+ #include <CoCoA/SmallFpImpl.H>
+ #include <CoCoA/SparsePolyOps-RingElem.H>
+-#include <CoCoA/SparsePolyOps-vector.H>
+ #include <CoCoA/factor.H>
+ #include <CoCoA/factorization.H>
+ #include <CoCoA/random.H>
