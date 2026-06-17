@@ -176,15 +176,18 @@ jobs:
           # Install base build tools (including glibc-static and libstdc++-static for static linking)
           # This includes all dependencies needed across all solvers
           dnf install -y gcc gcc-c++ make git patch tar unzip automake autoconf cmake ninja-build \
-            glibc-static libstdc++-static gmp-devel
+            glibc-static libstdc++-static gmp-devel diffutils
 
           # Install additional dependencies from EPEL
           dnf install -y --enablerepo=epel lzip
 
-          # Build and install gperf from source (not available in UBI 9 repos)
-          # Required by: Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
+          # Build and install gperf and bison from source (not available in UBI 9 repos)
+          # gperf: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
+          # bison: Required by CVC5
           curl -sL http://ftp.gnu.org/gnu/gperf/gperf-3.1.tar.gz | tar xz
           cd gperf-3.1 && ./configure && make -j4 && make install && cd .. && rm -rf gperf-3.1
+          curl -sL http://ftp.gnu.org/gnu/bison/bison-3.8.tar.gz | tar xz
+          cd bison-3.8 && ./configure && make -j4 && make install && cd .. && rm -rf bison-3.8
 
           # Install Python 3 and Java
           # Python: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
