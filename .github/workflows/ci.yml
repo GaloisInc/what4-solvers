@@ -49,6 +49,13 @@ jobs:
         run: git config --system core.longpaths true
         if: contains(matrix.os, 'windows')
 
+      - name: Import signing certificate (macOS)
+        uses: apple-actions/import-codesign-certs@v3
+        if: contains(matrix.os, 'macos')
+        with:
+          p12-file-base64: ${{ secrets.APPLE_P12_CERTIFICATE }}
+          p12-password: ${{ secrets.APPLE_P12_PASSWORD }}
+
       - name: Install dependencies (macOS)
         run: |
           brew update
@@ -113,6 +120,17 @@ jobs:
         run: .github/ci.sh build_${{ matrix.solver }}
         if: runner.os == 'Windows'
 
+      - name: Sign binary (macOS)
+        if: contains(matrix.os, 'macos')
+        env:
+          IDENTITY_NAME: ${{ secrets.APPLE_P12_IDENTITY_NAME }}
+        run: |
+          codesign \
+            --force \
+            --options runtime \
+            --sign "$IDENTITY_NAME" \
+            bin/${{ matrix.solver }}
+
       - name: test_solver (non-Windows)
         run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
         if: runner.os != 'Windows'
@@ -158,15 +176,18 @@ jobs:
           # Install base build tools (including glibc-static and libstdc++-static for static linking)
           # This includes all dependencies needed across all solvers
           dnf install -y gcc gcc-c++ make git patch tar unzip automake autoconf cmake ninja-build \
-            glibc-static libstdc++-static gmp-devel
+            glibc-static libstdc++-static gmp-devel diffutils
 
           # Install additional dependencies from EPEL
           dnf install -y --enablerepo=epel lzip
 
-          # Build and install gperf from source (not available in UBI 9 repos)
-          # Required by: Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
+          # Build and install gperf and bison from source (not available in UBI 9 repos)
+          # gperf: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
+          # bison: Required by CVC5
           curl -sL http://ftp.gnu.org/gnu/gperf/gperf-3.1.tar.gz | tar xz
           cd gperf-3.1 && ./configure && make -j4 && make install && cd .. && rm -rf gperf-3.1
+          curl -sL http://ftp.gnu.org/gnu/bison/bison-3.8.tar.gz | tar xz
+          cd bison-3.8 && ./configure && make -j4 && make install && cd .. && rm -rf bison-3.8
 
           # Install Python 3 and Java
           # Python: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
@@ -299,6 +320,45 @@ jobs:
         with:
           path: bin
           name: ${{ matrix.os }}-${{ matrix.arch }}-bin
+
+  # Notarize the macOS binaries. Note that Apple's documentation suggests that
+  # you shouldn't notarize more than 75 times in one day
+  # (https://developer.apple.com/documentation/security/customizing-the-notarization-workflow#Avoid-long-notarization-response-times-and-size-limits),
+  # so as a precaution, we only perform this step when a commit is on the
+  # `main` branch (and not in pull requests).
+  notarize_macos_solvers:
+    runs-on: ${{ matrix.os }}
+    needs: [package_solvers]
+    if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') &&
+        github.event.pull_request.head.repo.fork == false &&
+        github.repository_owner == 'GaloisInc'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15]
+        arch: [ARM64, X64]
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: "${{ matrix.os }}-${{ matrix.arch }}-bin"
+          path: bin
+
+      - name: Zip binaries
+        run: |
+          zip binaries.zip bin/*
+
+      - name: Notarize binaries
+        env:
+          KEY_ID: ${{ secrets.APPLE_P8_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APPLE_P8_ISSUER_ID }}
+          API_KEY: ${{ secrets.APPLE_P8_API_KEY }}
+        run: |
+          echo "$API_KEY" > "AuthKey_$KEY_ID.p8"
+          xcrun notarytool submit binaries.zip \
+            --key "AuthKey_$KEY_ID.p8" \
+            --key-id "$KEY_ID" \
+            --issuer "$ISSUER_ID" \
+            --wait
 
   # Indicates sufficient CI success for the purposes of mergify merging the pull
   # request, see .github/mergify.yml. This is done instead of enumerating each
