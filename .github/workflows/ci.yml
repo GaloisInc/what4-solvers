@@ -129,7 +129,7 @@ jobs:
             --force \
             --options runtime \
             --sign "$IDENTITY_NAME" \
-            bin/${{ matrix.solver }}
+            bin/*
 
       - name: test_solver (non-Windows)
         run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
