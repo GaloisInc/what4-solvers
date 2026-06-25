@@ -70,7 +70,7 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
-          msystem: MINGW64
+          msystem: UCRT64
           path-type: inherit
           install: |
             autoconf
@@ -82,9 +82,9 @@ jobs:
             lzip
             m4
             make
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-ninja
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-ninja
             patch
             tar
             unzip
