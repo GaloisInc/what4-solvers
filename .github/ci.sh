@@ -177,6 +177,9 @@ build_cvc4() {
 
 build_cvc5() {
   pushd repos/cvc5
+  # Use a more recent CoCoALib version to make the build succeed on Windows
+  # (see https://github.com/cvc5/cvc5/issues/12757)
+  patch -p1 -i "$PATCHES/cvc5-CoCoALib-0.99850.patch"
 
   # Detect Python executable
   # In GitHub Actions, use pythonLocation if available
@@ -193,9 +196,9 @@ build_cvc5() {
     # with multiple versions of Python pre-installed, and for some bizarre
     # reason, CMake always tries to pick the latest version, even if it is not
     # on the PATH. Manually overriding this option avoids this oddity.
-    ./configure.sh -DPython_EXECUTABLE="$PYTHON_EXE" --static --static-binary --auto-download --win64-native production
+    ./configure.sh -DPython_EXECUTABLE="$PYTHON_EXE" --static --static-binary --auto-download --cocoa --gpl --win64-native production
   else
-    ./configure.sh -DPython_EXECUTABLE="$PYTHON_EXE" --static --no-static-binary --auto-download production
+    ./configure.sh -DPython_EXECUTABLE="$PYTHON_EXE" --static --no-static-binary --auto-download --cocoa --gpl production
   fi
   cd build
   make -j4
