@@ -15,8 +15,7 @@ Currently, `what4-solvers` offers the following solver versions:
 * CVC4 - [1.8](https://github.com/CVC4/CVC4-archived/tree/5247901077efbc7b9016ba35fded7a6ab459a379)
 * CVC5 - [1.3.1](https://github.com/cvc5/cvc5/tree/ea1b484fa54bfe56c0f8b3ac90a6e3e2f46441e7)
 * Yices - [2.7.0](https://github.com/SRI-CSL/yices2/tree/85cf17e44eac76b5d14b297c09fc9bfecf47ef65)
-* Z3 - [4.8.8](https://github.com/Z3Prover/z3/tree/ad55a1f1c617a7f0c3dd735c0780fc758424c7f1) and
-       [4.8.14](https://github.com/Z3Prover/z3/tree/df8f9d7dcb8b9f9b3de1072017b7c2b7f63f0af8)
+* Z3 - [5.0.0](https://github.com/Z3Prover/z3/tree/8e3402b215a810a4154eb183a7dfc4e853eb2f52)
 
 Built for the following operating systems:
 
@@ -69,19 +68,3 @@ We attempt to offer somewhat broad coverage of different Linux versions.
 To that end, we build each solver on the two most recent Ubuntu LTS
 releases, as well as the latest RedHat Linux. This ensures relatively
 complete coverage of different shared library dependencies (e.g., different `glibc` versions).
-
-### Why offer multiple Z3 versions?
-
-We use Z3 as the default SMT solver in many different projects' CI, including
-the CI for Cryptol and SAW. Unfortunately, certain Z3 versions have been known
-to non-deterministically fail or time out on certain SMT queries. See, for
-example, [this Cryptol issue](https://github.com/GaloisInc/cryptol/issues/1107)
-regarding Z3 4.8.10 and
-[this SAW issue](https://github.com/GaloisInc/saw-script/issues/1772) regarding
-Z3 4.8.14. As a consequence, it is very difficult to find a single Z3 version
-that works reliably across all of our tools' CI.
-
-As a compromise, we offer multiple Z3 versions so that tools can pick one that
-is known to work well for their particular needs. If we successfully identify a
-later version of Z3 that is known to work reliably across all CI
-configurations, we may reconsider this choice.
