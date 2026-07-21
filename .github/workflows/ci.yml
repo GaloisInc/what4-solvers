@@ -205,16 +205,16 @@ jobs:
         if: contains(matrix.container, 'ubuntu')
 
       - name: Install dependencies (Ubuntu:22.04)
-        # Install gcc-14 via `mamba` as described in
-        # https://askubuntu.com/a/1529025
+        # Install gcc-14 via xpack
         # This step can be removed once Ubuntu:22.04 is EOL (June 2027)
         run: |
-          name=Miniforge3-$(uname)-$(uname -m).sh
           apt-get install -y wget
-          wget "https://github.com/conda-forge/miniforge/releases/latest/download/$name"
-          bash $name -b -p /root/mambaforge
-          /root/mambaforge/bin/mamba shell init -s bash
-          /root/mambaforge/bin/mamba install -y conda-forge::gcc=14.1.0 conda-forge::gxx=14.1.0
+          wget https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.3.0-1/xpack-gcc-14.3.0-1-linux-arm64.tar.gz
+          wget https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.3.0-1/xpack-gcc-14.3.0-1-linux-arm64.tar.gz.sha
+          sha256sum -c xpack-gcc-14.3.0-1-linux-arm64.tar.gz.sha
+          mv xpack-gcc-14.3.0-1 /opt/xpack-gcc-14.3.0-1
+          /opt/xpack-gcc-14.3.0-1/bin/gcc --version
+          echo "PATH=/opt/xpack-gcc-14.3.0-1/bin:$PATH" >> $GITHUB_ENV
         if: contains(matrix.container, 'ubuntu:22.04') && contains(matrix.solver, 'z3')
 
       - name: Install Python libraries
