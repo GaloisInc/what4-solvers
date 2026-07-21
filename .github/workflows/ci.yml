@@ -218,7 +218,7 @@ jobs:
           /opt/xpack-gcc-14.3.0-1/bin/gcc --version
           echo "PATH=/opt/xpack-gcc-14.3.0-1/bin:$PATH" >> $GITHUB_ENV
           # Update the existing OS library such that z3 is runnable
-          cp /opt/xpack-gcc-14.3.0-1/lib64/libstdc++.so.6 /usr/lib/aarch64-linux-gnu/libstdc++.so.6
+          cp /opt/xpack-gcc-14.3.0-1/lib64/libstdc++.so.6 /usr/lib/$(uname -m)-linux-gnu/libstdc++.so.6
         if: contains(matrix.container, 'ubuntu:22.04') && contains(matrix.solver, 'z3')
 
       - name: Install Python libraries
