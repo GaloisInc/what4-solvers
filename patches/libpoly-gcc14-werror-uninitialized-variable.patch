@@ -8,8 +8,8 @@ index 62f45fc..952fa4c 100644
    lp_value_t a_new, b_new;
 -  const lp_value_t *a_to_use;
 -  const lp_value_t *b_to_use;
-+  const lp_value_t *a_to_use = {};
-+  const lp_value_t *b_to_use = {};
++  const lp_value_t *a_to_use = {0};
++  const lp_value_t *b_to_use = {0};
 
    // Check for infinities
    if (lp_value_is_infinity(a) || lp_value_is_infinity(b)) {
