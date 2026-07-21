@@ -229,6 +229,11 @@ build_yices() {
   export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
   export LDFLAGS="-L$TOP/install-root/lib"
 
+  pushd repos/libpoly
+  # Work around -Werror=maybe-uninitialized error in libpoly (manifests on ubi10:latest, x64 platform)
+  patch -p1 -i "$PATCHES/libpoly-gcc14-werror-uninitialized-variable.patch"
+  popd
+
   pushd repos/cudd
   case "$RUNNER_OS" in
     Linux) autoreconf ;;
