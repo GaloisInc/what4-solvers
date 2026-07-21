@@ -204,14 +204,21 @@ jobs:
           apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc curl cmake libgmp-dev openjdk-17-jdk python3 python3-pip python3-venv
         if: contains(matrix.container, 'ubuntu')
 
-      - name: Install dependencies (Ubuntu:22.04)
+      - name: Set xpack installer (Ubuntu:22.04, z3)
+        run: |
+          arch=$([ "$(uname -m)" = "aarch64" ] && echo "arm64" || echo "x64")
+          echo "XPACK_ARCH=${arch}" >> $GITHUB_ENV
+        if: contains(matrix.container, 'ubuntu:22.04') && contains(matrix.solver, 'z3')
+
+      - name: Install dependencies (Ubuntu:22.04, z3)
         # Install gcc-14 via xpack
         # This step can be removed once Ubuntu:22.04 is EOL (June 2027)
         run: |
           apt-get install -y wget
-          wget https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.3.0-1/xpack-gcc-14.3.0-1-linux-arm64.tar.gz
-          wget https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.3.0-1/xpack-gcc-14.3.0-1-linux-arm64.tar.gz.sha
-          sha256sum -c xpack-gcc-14.3.0-1-linux-arm64.tar.gz.sha
+          wget https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.3.0-1/xpack-gcc-14.3.0-1-linux-${XPACK_ARCH}.tar.gz
+          wget https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.3.0-1/xpack-gcc-14.3.0-1-linux-${XPACK_ARCH}.tar.gz.sha
+          sha256sum -c xpack-gcc-14.3.0-1-linux-${XPACK_ARCH}.tar.gz.sha
+          tar xf xpack-gcc-14.3.0-1-linux-${XPACK_ARCH}.tar.gz.sha
           mv xpack-gcc-14.3.0-1 /opt/xpack-gcc-14.3.0-1
           /opt/xpack-gcc-14.3.0-1/bin/gcc --version
           echo "PATH=/opt/xpack-gcc-14.3.0-1/bin:$PATH" >> $GITHUB_ENV
