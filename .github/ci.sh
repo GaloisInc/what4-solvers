@@ -279,6 +279,8 @@ build_yices() {
 build_z3() {
   Z3_BIN="z3"
   pushd "repos/$Z3_BIN"
+  # Work around https://github.com/Z3Prover/z3/issues/10171
+  patch -p1 -i "$PATCHES/z3-windows-imagehlp.patch"
   mkdir build
   cd build
   if $IS_WIN ; then
