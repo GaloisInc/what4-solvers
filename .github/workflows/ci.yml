@@ -212,12 +212,12 @@ jobs:
           name=Miniforge3-$(uname)-$(uname -m).sh
           apt-get install -y wget
           wget "https://github.com/conda-forge/miniforge/releases/latest/download/$name"
-          bash $name -b -p ~/mambaforge
+          bash $name -b -p /root/mambaforge
           /root/mambaforge/bin/mamba shell init -s bash
           rm $name
           mamba install -y conda-forge::gcc=14.1.0 conda-forge::gxx=14.1.0
           echo "PATH=/root/mambaforge/bin:$PATH" >> $GITHUB_ENV
-        if: contains(matrix.container, 'ubuntu:22.04')
+        if: contains(matrix.container, 'ubuntu:22.04') && contains(matrix.solver, 'z3')
 
       - name: Install Python libraries
         run: |
