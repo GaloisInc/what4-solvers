@@ -161,7 +161,7 @@ jobs:
       matrix:
         # the base runner OS - we use the latest ubuntu, both in x86 and arm64
         os: [ubuntu-24.04, ubuntu-24.04-arm]
-        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
+        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi10
         # each will be built in both arm and x86 versions
         # if a new container is added, update the normalize_container_name() function in ci.sh
         container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi10:latest]
@@ -270,10 +270,10 @@ jobs:
           # Windows packages
           - os: windows-2022
             arch: X64
-          # RedHat UBI9 packages
-          - os: redhat-ubi9
+          # RedHat UBI10 packages
+          - os: redhat-ubi10
             arch: X64
-          - os: redhat-ubi9
+          - os: redhat-ubi10
             arch: ARM64
     steps:
       - uses: actions/checkout@v6
