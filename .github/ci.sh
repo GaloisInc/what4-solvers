@@ -315,8 +315,8 @@ normalize_container_name() {
     "ubuntu:22.04")
       echo "ubuntu-22.04"
       ;;
-    "redhat/ubi9:latest")
-      echo "redhat-ubi9"
+    "redhat/ubi10:latest")
+      echo "redhat-ubi10"
       ;;
     *)
       echo "Error: Unknown container name '$ORIG_NAME'" >&2
