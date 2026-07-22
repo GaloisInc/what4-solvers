@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-15, macos-15-intel, windows-2022]
-        solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
+        solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3]
     steps:
       # This is necessary to clone the yices2 repo on Windows, as some of the
       # repo's test cases exceed the Windows API's default file path limit of
@@ -161,29 +161,32 @@ jobs:
       matrix:
         # the base runner OS - we use the latest ubuntu, both in x86 and arm64
         os: [ubuntu-24.04, ubuntu-24.04-arm]
-        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
+        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi10
         # each will be built in both arm and x86 versions
         # if a new container is added, update the normalize_container_name() function in ci.sh
-        container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
-        solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
+        container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi10:latest]
+        solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3]
     steps:
 
-      - name: Install dependencies (Red Hat UBI 9)
+      - name: Install dependencies (Red Hat UBI 10)
         run: |
+          # Update DNF cache
+          dnf update -y
+
           # Install EPEL for additional packages
-          dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+          dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-10.noarch.rpm
 
           # Install base build tools (including glibc-static and libstdc++-static for static linking)
           # This includes all dependencies needed across all solvers
           dnf install -y gcc gcc-c++ make git patch tar unzip automake autoconf cmake ninja-build \
             glibc-static libstdc++-static gmp-devel diffutils
 
-          # Install additional dependencies from EPEL
+          # Install `lzip` from EPEL
           dnf install -y --enablerepo=epel lzip
 
-          # Build and install gperf and bison from source (not available in UBI 9 repos)
+          # Build and install gperf and bison from source (not available in UBI 10 repos)
           # gperf: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
-          # bison: Required by CVC5
+          # bison: Required by CVC5 (bison-3.8 is the latest version)
           curl -sL http://ftp.gnu.org/gnu/gperf/gperf-3.1.tar.gz | tar xz
           cd gperf-3.1 && ./configure && make -j4 && make install && cd .. && rm -rf gperf-3.1
           curl -sL http://ftp.gnu.org/gnu/bison/bison-3.8.tar.gz | tar xz
@@ -192,7 +195,7 @@ jobs:
           # Install Python 3 and Java
           # Python: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
           # Java: Required by CVC4, CVC5 (for ANTLR)
-          dnf install -y python3 python3-pip java-17-openjdk-devel
+          dnf install -y python3 python3-pip java-21-openjdk-devel
         if: contains(matrix.container, 'redhat')
 
       - name: Install dependencies (Ubuntu)
@@ -201,11 +204,27 @@ jobs:
           apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc curl cmake libgmp-dev openjdk-17-jdk python3 python3-pip python3-venv
         if: contains(matrix.container, 'ubuntu')
 
+      - name: Install dependencies (Ubuntu:22.04, z3)
+        # Install gcc-14 via xpack
+        # This step can be removed once Ubuntu:22.04 is EOL (June 2027)
+        run: |
+          XPACK_ARCH=$([ "$(uname -m)" = "aarch64" ] && echo "arm64" || echo "x64")
+          apt-get install -y wget
+          wget https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.3.0-1/xpack-gcc-14.3.0-1-linux-${XPACK_ARCH}.tar.gz
+          wget https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v14.3.0-1/xpack-gcc-14.3.0-1-linux-${XPACK_ARCH}.tar.gz.sha
+          sha256sum -c xpack-gcc-14.3.0-1-linux-${XPACK_ARCH}.tar.gz.sha
+          tar xf xpack-gcc-14.3.0-1-linux-${XPACK_ARCH}.tar.gz
+          mv xpack-gcc-14.3.0-1 /opt/xpack-gcc-14.3.0-1
+          /opt/xpack-gcc-14.3.0-1/bin/gcc --version
+          echo "PATH=/opt/xpack-gcc-14.3.0-1/bin:$PATH" >> $GITHUB_ENV
+          # Update the existing OS library such that z3 is runnable
+          cp /opt/xpack-gcc-14.3.0-1/lib64/libstdc++.so.6 /usr/lib/$(uname -m)-linux-gnu/libstdc++.so.6
+        if: contains(matrix.container, 'ubuntu:22.04') && contains(matrix.solver, 'z3')
+
       - name: Install Python libraries
         run: |
           python3 -m venv /opt/venv
-          # setuptools provides distutils compatibility for Python 3.12+ (needed by z3-4.8.8)
-          /opt/venv/bin/pip install setuptools meson pyparsing toml tomli
+          /opt/venv/bin/pip install meson pyparsing toml tomli
           echo "PATH=/opt/venv/bin:$PATH" >> $GITHUB_ENV
 
       - uses: actions/checkout@v6
@@ -251,10 +270,10 @@ jobs:
           # Windows packages
           - os: windows-2022
             arch: X64
-          # RedHat UBI9 packages
-          - os: redhat-ubi9
+          # RedHat UBI10 packages
+          - os: redhat-ubi10
             arch: X64
-          - os: redhat-ubi9
+          - os: redhat-ubi10
             arch: ARM64
     steps:
       - uses: actions/checkout@v6
@@ -295,26 +314,8 @@ jobs:
 
       - uses: actions/download-artifact@v6
         with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.8-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-bin"
           path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.14-bin"
-          path: bin
-
-        # Make a copy of z3-<LATEST_Z3_VERSION> named z3 for ease of use.
-        # Unfortunately, GitHub Actions' upload-artifact action doesn't support
-        # symlinks (see https://github.com/actions/upload-artifact/issues/93),
-        # so we have no choice but to copy the entire binary.
-        #
-        # The Windows binaries have an .exe suffix, thus we need to account for that
-        # in the conditional copy. Note that we are using the `matrix.os`,
-        # which is `windows-2022`, rather than the runner OS, which would be `Windows`
-      - name: Copy latest Z3 version
-        run: |
-         [[ "${{ matrix.os }}" == *windows* ]] && EXE=".exe" || EXE=""
-         cp bin/z3-${{ env.LATEST_Z3_VERSION }}$EXE bin/z3$EXE
 
       - uses: actions/upload-artifact@v4
         with:

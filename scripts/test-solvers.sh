@@ -120,7 +120,7 @@ test_solver() {
 # Test all solvers, assume they are on the system PATH
 # If the first argument is `quiet`, only the solver version is printed
 test_all_solvers() {
-  for solver in abc bitwuzla boolector cvc4 cvc5 yices z3-4.8.8 z3-4.8.14
+  for solver in abc bitwuzla boolector cvc4 cvc5 yices z3
   do
     test_solver "$solver" "" "${1:-}"
   done

@@ -229,6 +229,11 @@ build_yices() {
   export CXXFLAGS="-I$TOP/install-root/include -I$TOP/repos/libpoly/src -I$TOP/repos/libpoly/include"
   export LDFLAGS="-L$TOP/install-root/lib"
 
+  pushd repos/libpoly
+  # Work around -Werror=maybe-uninitialized error in libpoly (manifests on ubi10:latest, x64 platform)
+  patch -p1 -i "$PATCHES/libpoly-gcc14-werror-uninitialized-variable.patch"
+  popd
+
   pushd repos/cudd
   case "$RUNNER_OS" in
     Linux) autoreconf ;;
@@ -276,18 +281,11 @@ build_yices() {
   cleanup_bins
 }
 
-build_z3-4.8.8() {
-  build_z3 "4.8.8"
-}
-
-build_z3-4.8.14() {
-  build_z3 "4.8.14"
-}
-
 build_z3() {
-  Z3_BIN="z3-$1"
+  Z3_BIN="z3"
   pushd "repos/$Z3_BIN"
-  patch -p1 -i "$PATCHES/$Z3_BIN-gcc-15-fix.patch"
+  # Work around https://github.com/Z3Prover/z3/issues/10171
+  patch -p1 -i "$PATCHES/z3-windows-imagehlp.patch"
   mkdir build
   cd build
   if $IS_WIN ; then
@@ -317,8 +315,8 @@ normalize_container_name() {
     "ubuntu:22.04")
       echo "ubuntu-22.04"
       ;;
-    "redhat/ubi9:latest")
-      echo "redhat-ubi9"
+    "redhat/ubi10:latest")
+      echo "redhat-ubi10"
       ;;
     *)
       echo "Error: Unknown container name '$ORIG_NAME'" >&2
