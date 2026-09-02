@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2025, windows-11-arm]
+        os: [windows-11-arm]
         solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
       # This is necessary to clone the yices2 repo on Windows, as some of the
@@ -66,11 +66,11 @@ jobs:
           echo "PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH" >> $GITHUB_ENV
         if: contains(matrix.os, 'macos')
 
-      - name: Install dependencies (Windows)
+      - name: Install dependencies (Windows ARM64)
         uses: msys2/setup-msys2@v2
         with:
           update: true
-          msystem: UCRT64
+          msystem: CLANGARM64
           path-type: inherit
           install: |
             autoconf
@@ -82,9 +82,9 @@ jobs:
             lzip
             m4
             make
-            mingw-w64-ucrt-x86_64-cmake
-            mingw-w64-ucrt-x86_64-gcc
-            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-clang-aarch64-cmake
+            mingw-w64-clang-aarch64-gcc
+            mingw-w64-clang-aarch64-ninja
             patch
             tar
             unzip
@@ -156,8 +156,6 @@ jobs:
       matrix:
         include:
           # Windows packages
-          - os: windows-2025
-            arch: X64
           - os: windows-11-arm
             arch: ARM64
     steps:
