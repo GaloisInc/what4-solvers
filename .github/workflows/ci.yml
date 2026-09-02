@@ -103,7 +103,7 @@ jobs:
       - name: Install Java
         uses: actions/setup-java@v6
         with:
-          distribution: 'temurin'
+          distribution: 'microsoft'
           java-version: '17'
 
       - uses: actions/checkout@v6
