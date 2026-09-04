@@ -265,6 +265,8 @@ build_yices() {
     dos2unix src/frontend/smt1/smt_keywords.txt
     dos2unix src/frontend/yices/yices_keywords.txt
     cp configs/make.include.aarch64-w64-mingw32 configs/make.include.aarch64-pc-mingw64
+    cp "$(automake --print-libdir)/config.guess" config.guess
+    cp "$(automake --print-libdir)/config.sub" config.sub
   else
     # shellcheck disable=SC2086
     ./configure --enable-mcsat $CONFIGURE_FLAGS
