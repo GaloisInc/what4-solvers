@@ -160,7 +160,7 @@ build_cvc4() {
     patch -p1 -i "$PATCHES/cvc4-win64-native.patch"
     # GitHub Actions comes preinstalled with Chocolatey's mingw package, which
     # includes the ld.gold linker. This does not play nicely with MSYS2's
-    # mingw-w64-x86_64-gcc, so we must prevent CMake from using ld.gold.
+    # mingw-w64-aarch64-gcc, so we must prevent CMake from using ld.gold.
     # (Ideally, there would be a CMake configuration option to accomplish this,
     # but I have not found one.)
     patch -p1 -i "$PATCHES/cvc4-no-ld-gold.patch"
@@ -209,11 +209,11 @@ build_cvc5() {
 
 build_yices() {
   if $IS_WIN ; then
-    export CC=x86_64-w64-mingw32-gcc
-    export CXX=x86_64-w64-mingw32-g++
+    export CC=aarch64-w64-mingw32-gcc
+    export CXX=aarch64-w64-mingw32-g++
   fi
   if $IS_WIN ; then
-    export CONFIGURE_FLAGS="--build=x86_64-w64-mingw32 --prefix=$TOP/install-root"
+    export CONFIGURE_FLAGS="--build=aarch64-w64-mingw32 --prefix=$TOP/install-root"
   else
     export CONFIGURE_FLAGS="--prefix=$TOP/install-root"
   fi
@@ -244,7 +244,7 @@ build_yices() {
   pushd repos/libpoly
   cd build
   if $IS_WIN; then
-    cmake .. -DCMAKE_TOOLCHAIN_FILE="$TOP/scripts/libpoly-x86_64-w64-mingw32.cmake" -DCMAKE_INSTALL_PREFIX="$TOP/install-root" -DGMP_INCLUDE_DIR="$TOP/install-root/include" -DGMP_LIBRARY="$TOP/install-root/lib/libgmp.a" -DLIBPOLY_BUILD_PYTHON_API=Off -GNinja
+    cmake .. -DCMAKE_TOOLCHAIN_FILE="$TOP/scripts/libpoly-aarch64-w64-mingw32.cmake" -DCMAKE_INSTALL_PREFIX="$TOP/install-root" -DGMP_INCLUDE_DIR="$TOP/install-root/include" -DGMP_LIBRARY="$TOP/install-root/lib/libgmp.a" -DLIBPOLY_BUILD_PYTHON_API=Off -GNinja
   else
     cmake .. -DCMAKE_BUILD_TYPE=Release -DLIBPOLY_BUILD_PYTHON_API=Off -DCMAKE_INSTALL_PREFIX="$TOP/install-root" -GNinja
   fi
@@ -264,7 +264,7 @@ build_yices() {
     dos2unix src/frontend/smt2/smt2_symbols.txt
     dos2unix src/frontend/smt1/smt_keywords.txt
     dos2unix src/frontend/yices/yices_keywords.txt
-    cp configs/make.include.x86_64-w64-mingw32 configs/make.include.x86_64-pc-mingw64
+    cp configs/make.include.aarch64-w64-mingw32 configs/make.include.aarch64-pc-mingw64
   else
     # shellcheck disable=SC2086
     ./configure --enable-mcsat $CONFIGURE_FLAGS
