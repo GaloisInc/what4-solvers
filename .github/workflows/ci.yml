@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-11-arm]
-        solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
+        solver: [yices]
     steps:
       # This is necessary to clone the yices2 repo on Windows, as some of the
       # repo's test cases exceed the Windows API's default file path limit of
@@ -167,56 +167,8 @@ jobs:
 
       - uses: actions/download-artifact@v6
         with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-abc-bin"
-          path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-bitwuzla-bin"
-          path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-boolector-bin"
-          path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-cvc4-bin"
-          path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-cvc5-bin"
-          path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-yices-bin"
           path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.8-bin"
-          path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.14-bin"
-          path: bin
-
-        # Make a copy of z3-<LATEST_Z3_VERSION> named z3 for ease of use.
-        # Unfortunately, GitHub Actions' upload-artifact action doesn't support
-        # symlinks (see https://github.com/actions/upload-artifact/issues/93),
-        # so we have no choice but to copy the entire binary.
-        #
-        # The Windows binaries have an .exe suffix, thus we need to account for that
-        # in the conditional copy. Note that we are using the `matrix.os`,
-        # which is `windows-2022`, rather than the runner OS, which would be `Windows`
-      - name: Copy latest Z3 version
-        run: |
-         [[ "${{ matrix.os }}" == *windows* ]] && EXE=".exe" || EXE=""
-         cp bin/z3-${{ env.LATEST_Z3_VERSION }}$EXE bin/z3$EXE
 
       - uses: actions/upload-artifact@v4
         with:
