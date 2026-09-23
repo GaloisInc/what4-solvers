@@ -40,7 +40,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-15, macos-15-intel, windows-2022]
-        solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
+        solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
       # This is necessary to clone the yices2 repo on Windows, as some of the
       # repo's test cases exceed the Windows API's default file path limit of
@@ -165,7 +165,7 @@ jobs:
         # each will be built in both arm and x86 versions
         # if a new container is added, update the normalize_container_name() function in ci.sh
         container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
-        solver: [abc, bitwuzla, boolector, cvc4, cvc5, yices, z3-4.8.8, z3-4.8.14]
+        solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
 
       - name: Install dependencies (Red Hat UBI 9)
@@ -182,7 +182,7 @@ jobs:
           dnf install -y --enablerepo=epel lzip
 
           # Build and install gperf and bison from source (not available in UBI 9 repos)
-          # gperf: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
+          # gperf: Required by Bitwuzla, Z3, Yices, CVC5, Boolector
           # bison: Required by CVC5
           curl -sL http://ftp.gnu.org/gnu/gperf/gperf-3.1.tar.gz | tar xz
           cd gperf-3.1 && ./configure && make -j4 && make install && cd .. && rm -rf gperf-3.1
@@ -190,8 +190,8 @@ jobs:
           cd bison-3.8 && ./configure && make -j4 && make install && cd .. && rm -rf bison-3.8
 
           # Install Python 3 and Java
-          # Python: Required by Bitwuzla, Z3, Yices, CVC4, CVC5, Boolector
-          # Java: Required by CVC4, CVC5 (for ANTLR)
+          # Python: Required by Bitwuzla, Z3, Yices, CVC5, Boolector
+          # Java: Required by CVC5 (for ANTLR)
           dnf install -y python3 python3-pip java-17-openjdk-devel
         if: contains(matrix.container, 'redhat')
 
@@ -276,11 +276,6 @@ jobs:
       - uses: actions/download-artifact@v6
         with:
           name: "${{ matrix.os }}-${{ matrix.arch }}-boolector-bin"
-          path: bin
-
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-cvc4-bin"
           path: bin
 
       - uses: actions/download-artifact@v6
