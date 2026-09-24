@@ -125,11 +125,11 @@ jobs:
         env:
           IDENTITY_NAME: ${{ secrets.APPLE_P12_IDENTITY_NAME }}
         run: |
-          codesign \
+          find bin -maxdepth 1 -type f -exec codesign \
             --force \
             --options runtime \
             --sign "$IDENTITY_NAME" \
-            bin/*
+            {} +
 
       - name: test_solver (non-Windows)
         run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
@@ -343,7 +343,7 @@ jobs:
 
       - name: Zip binaries
         run: |
-          zip binaries.zip bin/*
+          find bin -maxdepth 1 -type f -exec zip binaries.zip {} +
 
       - name: Notarize binaries
         env:

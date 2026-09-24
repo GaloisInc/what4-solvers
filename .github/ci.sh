@@ -7,6 +7,7 @@ TOP=$(pwd)
 BIN=$TOP/bin
 EXT=""
 PATCHES=$TOP/patches
+LICENSES=$TOP/bin/licenses
 $IS_WIN && EXT=".exe"
 
 # Detect Linux distribution
@@ -26,6 +27,7 @@ if $IS_LINUX; then
 fi
 
 mkdir -p "$BIN"
+mkdir -p "$LICENSES"
 
 # Build static GMP library from source
 # Used by bitwuzla and yices when static GMP is not available
@@ -63,7 +65,8 @@ ensure_static_gmp() {
 }
 
 build_abc() {
-  pushd repos/abc
+  DIR=repos/abc
+  pushd "$DIR"
   if $IS_WIN ; then
     # Windows does not have libdl or librt
     sed -i.bak -e 's/-ldl//' Makefile
@@ -92,6 +95,7 @@ build_abc() {
   cp "abc$EXT" "$BIN"
   popd
   cleanup_bins
+  cp "$DIR/copyright.txt" "$LICENSES/LICENSE.abc"
 }
 
 build_bitwuzla() {
@@ -105,7 +109,8 @@ build_bitwuzla() {
   export CFLAGS="-I$TOP/install-root/include"
   export LDFLAGS="-L$TOP/install-root/lib"
 
-  pushd repos/bitwuzla
+  DIR=repos/bitwuzla
+  pushd "$DIR"
   # Backport the changes from
   # https://github.com/bitwuzla/bitwuzla/commit/d30ef4147eb2cbe21267702a1c0be60e01d353cd
   # to make Bitwuzla build with GCC >=15
@@ -116,10 +121,12 @@ build_bitwuzla() {
   cp "src/main/bitwuzla$EXT" "$BIN"
   popd
   cleanup_bins
+  cp "$DIR/COPYING" "$LICENSES/LICENSE.bitwuzla"
 }
 
 build_boolector() {
-  pushd repos/boolector
+  DIR=repos/boolector
+  pushd "$DIR"
   if $IS_WIN ; then
     export CMAKE_OPTS="-DIS_WINDOWS_BUILD=1"
     # Backport https://github.com/Boolector/boolector/pull/181
@@ -134,10 +141,12 @@ build_boolector() {
   cp "bin/boolector$EXT" "$BIN"
   popd
   cleanup_bins
+  cp "$DIR/COPYING" "$LICENSES/LICENSE.boolector"
 }
 
 build_cvc5() {
-  pushd repos/cvc5
+  DIR=repos/cvc5
+  pushd "$DIR"
   # Use a more recent CoCoALib version to make the build succeed on Windows
   # (see https://github.com/cvc5/cvc5/issues/12757)
   patch -p1 -i "$PATCHES/cvc5-CoCoALib-0.99850.patch"
@@ -166,6 +175,7 @@ build_cvc5() {
   cp "bin/cvc5$EXT" "$BIN"
   popd
   cleanup_bins
+  cp "$DIR/COPYING" "$LICENSES/LICENSE.cvc5"
 }
 
 build_yices() {
@@ -215,7 +225,8 @@ build_yices() {
   cp -r ../include/*.h "$TOP/install-root/include/poly"
   popd
 
-  pushd repos/yices2
+  DIR=repos/yices2
+  pushd "$DIR"
   autoconf
   if $IS_WIN; then
     # shellcheck disable=SC2086
@@ -235,6 +246,7 @@ build_yices() {
   if [ -e "$BIN/yices_smt2$EXT" ] ; then cp "$BIN/yices_smt2$EXT" "$BIN/yices-smt2$EXT" ; else true ; fi
   popd
   cleanup_bins
+  cp "$DIR/LICENSE.txt" "$LICENSES/LICENSE.yices"
 }
 
 build_z3-4.8.8() {
@@ -247,7 +259,8 @@ build_z3-4.8.14() {
 
 build_z3() {
   Z3_BIN="z3-$1"
-  pushd "repos/$Z3_BIN"
+  DIR="repos/$Z3_BIN"
+  pushd "$DIR"
   patch -p1 -i "$PATCHES/$Z3_BIN-gcc-15-fix.patch"
   mkdir build
   cd build
@@ -260,11 +273,15 @@ build_z3() {
   cp "z3$EXT" "$BIN/$Z3_BIN$EXT"
   popd
   cleanup_bins
+  cp "$DIR/LICENSE.txt" "$LICENSES/LICENSE.z3"
 }
 
+# Ensure that all binaries have executable permissions and are stripped.
 cleanup_bins() {
-  $IS_WIN || chmod +x "$BIN"/*
-  strip "$BIN"/*
+  # Use `-maxdepth 1` below to ensure that we don't call these commands on
+  # subdirectories (e.g., `licenses`).
+  $IS_WIN || find "$BIN" -maxdepth 1 -type f -exec chmod +x {} +
+  find "$BIN" -maxdepth 1 -type f -exec strip {} +
 }
 
 # Convert the container name into a standard OS-ARCH string
