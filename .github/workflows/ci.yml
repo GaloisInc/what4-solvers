@@ -311,6 +311,9 @@ jobs:
          [[ "${{ matrix.os }}" == *windows* ]] && EXE=".exe" || EXE=""
          cp bin/z3-${{ env.LATEST_Z3_VERSION }}$EXE bin/z3$EXE
 
+      - name: Copy what4-solvers README
+        run: cp README.md bin/README.md
+
       - uses: actions/upload-artifact@v4
         with:
           path: bin
