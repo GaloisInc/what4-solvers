@@ -64,6 +64,37 @@ ensure_static_gmp() {
   fi
 }
 
+# Used by bitwuzla to install a recent version of GNU MPFR. Note that MPFR
+# depends on GMP, so this should only be run after `ensure_static_gmp`, and
+# only after the GMP-related paths have been put in the appropriate environment
+# variables.
+#
+# On most operating systems, we could instead install MPFR from the package
+# manager, but the catch is that bitwuzla requires a somewhat recent MPFR
+# version (>=4.2.1) that is not available on redhat/ubi9:latest or
+# ubuntu:22.04. It is possible that we could simply switch to package manager
+# versions of MPFR in the future when redhat/ubi9:latest upgrades its MPFR
+# version and we drop support for ubuntu:22.04.
+ensure_static_mpfr() {
+  echo "Building static MPFR from source..."
+  mkdir -p install-root/include
+  mkdir -p install-root/lib
+
+  MPFR_VERSION="4.2.2"
+
+  # Download and extract MPFR if not already present
+  if [ ! -d "repos/mpfr-$MPFR_VERSION" ]; then
+    (cd repos && curl -o mpfr.tar.xz -sL "https://ftp.gnu.org/gnu/mpfr/mpfr-$MPFR_VERSION.tar.xz" && tar xf mpfr.tar.xz)
+  fi
+
+  pushd "repos/mpfr-$MPFR_VERSION"
+
+  ./configure --prefix="$TOP/install-root" --enable-static --disable-shared
+  make -j4
+  make install
+  popd
+}
+
 build_abc() {
   DIR=repos/abc
   pushd "$DIR"
@@ -108,6 +139,10 @@ build_bitwuzla() {
   export PKG_CONFIG_PATH="$TOP/install-root/lib/pkgconfig"
   export CFLAGS="-I$TOP/install-root/include"
   export LDFLAGS="-L$TOP/install-root/lib"
+
+  # bitwuzla also requires GNU MPFR, and a somewhat recent version at that, so
+  # install a recent version statically.
+  ensure_static_mpfr
 
   DIR=repos/bitwuzla
   pushd "$DIR"

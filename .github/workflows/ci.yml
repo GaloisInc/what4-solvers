@@ -85,6 +85,7 @@ jobs:
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
             patch
             tar
             unzip
@@ -176,7 +177,7 @@ jobs:
           # Install base build tools (including glibc-static and libstdc++-static for static linking)
           # This includes all dependencies needed across all solvers
           dnf install -y gcc gcc-c++ make git patch tar unzip automake autoconf cmake ninja-build \
-            glibc-static libstdc++-static gmp-devel diffutils
+            glibc-static libstdc++-static gmp-devel pkg-config diffutils xz
 
           # Install additional dependencies from EPEL
           dnf install -y --enablerepo=epel lzip
@@ -198,7 +199,7 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           apt-get update
-          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc curl cmake libgmp-dev openjdk-17-jdk python3 python3-pip python3-venv
+          apt-get install -y gperf automake autoconf libreadline-dev lzip ninja-build git make gcc curl cmake libgmp-dev openjdk-17-jdk pkg-config python3 python3-pip python3-venv
         if: contains(matrix.container, 'ubuntu')
 
       - name: Install Python libraries
