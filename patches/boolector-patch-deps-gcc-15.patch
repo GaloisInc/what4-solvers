@@ -1,0 +1,24 @@
+diff --git a/cmake/googletest-download.cmake b/cmake/googletest-download.cmake
+index 8dca5953..4c9fb3d2 100644
+--- a/cmake/googletest-download.cmake
++++ b/cmake/googletest-download.cmake
+@@ -25,4 +25,5 @@ ExternalProject_Add(
+   BUILD_COMMAND ""
+   INSTALL_COMMAND ""
+   TEST_COMMAND ""
++  PATCH_COMMAND patch -p1 -i "${CMAKE_CURRENT_SOURCE_DIR}/../../../../patches/googletest-gcc-15-fix.patch"
+   )
+diff --git a/contrib/setup-lingeling.sh b/contrib/setup-lingeling.sh
+index 8f31f1a6..c0163bef 100755
+--- a/contrib/setup-lingeling.sh
++++ b/contrib/setup-lingeling.sh
+@@ -17,6 +17,9 @@ COMMIT_ID="7d5db72420b95ab356c98ca7f7a4681ed2c59c70"
+ 
+ download_github "arminbiere/lingeling" "$COMMIT_ID" "$LINGELING_DIR"
+ cd "${LINGELING_DIR}"
++# Fix incompatible pointer type errors from GCC 15. Patch taken from
++# https://github.com/arminbiere/lingeling/pull/11
++patch -p1 -i ../../../../patches/lingeling-gcc-15-fix.patch
+ 
+ if is_windows; then
+   component="Lingeling"

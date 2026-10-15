@@ -10,7 +10,7 @@ Binary distributions can be found at the
 Currently, `what4-solvers` offers the following solver versions:
 
 * ABC - [99ab99bf](https://github.com/berkeley-abc/abc/tree/99ab99bfa6d1c2cc11d59af16aa26b273f611674)
-* Bitwuzla - [0.7.0](https://github.com/bitwuzla/bitwuzla/tree/3cf7c35b97c60016883cc19c4d6a9344a989a4d6)
+* Bitwuzla - [0.9.1](https://github.com/bitwuzla/bitwuzla/tree/8d1eb01093ae54d9b4586456b69c3bf31000a4c2)
 * Boolector - [3.2.2](https://github.com/Boolector/boolector/tree/e7aba964f69cd52dbe509e46e818a4411b316cd3)
 * CVC5 - [1.3.1](https://github.com/cvc5/cvc5/tree/ea1b484fa54bfe56c0f8b3ac90a6e3e2f46441e7)
 * Yices - [2.7.0](https://github.com/SRI-CSL/yices2/tree/85cf17e44eac76b5d14b297c09fc9bfecf47ef65)
@@ -23,6 +23,7 @@ Built for the following operating systems:
 * RedHat UBI9 (arm64 and x86-64)
 * Ubuntu 22.04 (arm64 and x86-64)
 * Ubuntu 24.04 (arm64 and x86-64)
+* Ubuntu 26.04 (arm64 and x86-64)
 * Windows Server 2022 (x86-64)
 
 All of the binary distributions are built from CI.

@@ -27,6 +27,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Ubuntu 26.04
+          # (TODO: Uncomment the lines below when there is a what4-solvers
+          # snapshot that includes Ubuntu 26.04 binaries)
+          # - os: ubuntu-26.04
+          #   arch: X64
+          #   runner: ubuntu-26.04
+          # - os: ubuntu-26.04
+          #   arch: ARM64
+          #   runner: ubuntu-26.04-arm
           # Ubuntu 24.04
           - os: ubuntu-24.04
             arch: X64
@@ -72,9 +81,9 @@ jobs:
       matrix:
         include:
           - arch: X64
-            runner: ubuntu-24.04
+            runner: ubuntu-26.04
           - arch: ARM64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
     runs-on: ${{ matrix.runner }}
     # We use unpinned image because downstream users typically use unpinned images as well.
     # By using the `latest` tag we aim to catch any future breaking changes here.
@@ -115,6 +124,8 @@ jobs:
 
   # Test specific release tag
   test-release-tag:
+    # TODO: Change the line below to use ubuntu-26.04 when there is a
+    # what4-solvers snapshot that includes Ubuntu 26.04 binaries
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6

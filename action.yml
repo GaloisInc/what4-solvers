@@ -12,7 +12,7 @@ inputs:
     required: false
     default: 'latest'
   os:
-    description: 'Override OS detection (ubuntu-22.04, ubuntu-24.04, macos-15, windows-2022, redhat-ubi9)'
+    description: 'Override OS detection (ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, macos-15, windows-2022, redhat-ubi9)'
     required: false
     default: ''
   arch:
