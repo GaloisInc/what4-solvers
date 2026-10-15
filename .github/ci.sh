@@ -127,6 +127,8 @@ build_bitwuzla() {
 build_boolector() {
   DIR=repos/boolector
   pushd "$DIR"
+  # Patch Boolector's dependencies to build with GCC 15
+  patch -p1 -i "$PATCHES/boolector-patch-deps-gcc-15.patch"
   if $IS_WIN ; then
     export CMAKE_OPTS="-DIS_WINDOWS_BUILD=1"
     # Backport https://github.com/Boolector/boolector/pull/181
