@@ -6,7 +6,7 @@
 # Options:
 #   -d, --dest DIR       Destination directory (default: ./solvers)
 #   -r, --release TAG    Release tag to download (default: latest)
-#   -o, --os OS          Override OS detection (ubuntu-22.04, ubuntu-24.04, macos-15, windows-2022, redhat-ubi9)
+#   -o, --os OS          Override OS detection (ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, macos-15, windows-2022, redhat-ubi9)
 #   -a, --arch ARCH      Override architecture detection (X64, ARM64)
 #   -h, --help           Show this help message
 #
@@ -36,7 +36,7 @@ Options:
   -h, --help           Show this help message
 
 Supported OS values:
-  ubuntu-22.04, ubuntu-24.04, macos-15, windows-2022, redhat-ubi9
+  ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, macos-15, windows-2022, redhat-ubi9
 
 Environment variables:
   WHAT4_SOLVERS_DEST   Same as --dest
@@ -89,7 +89,7 @@ detect_os() {
             # Detect the specific Linux distribution
             if [[ ! -f /etc/os-release ]]; then
                 printf "Error: Cannot detect Linux distribution (/etc/os-release not found)" >&2
-                printf "Use --os to specify one of: ubuntu-22.04, ubuntu-24.04, redhat-ubi9" >&2
+                printf "Use --os to specify one of: ubuntu-22.04, ubuntu-24.04, ubuntu-26.04, redhat-ubi9" >&2
                 exit 1
             fi
             # shellcheck disable=SC1091
@@ -99,9 +99,10 @@ detect_os() {
                     case "$VERSION_ID" in
                         22.04) printf "ubuntu-22.04" ;;
                         24.04) printf "ubuntu-24.04" ;;
+                        26.04) printf "ubuntu-26.04" ;;
                         *)
                             printf "Error: Unsupported Ubuntu version: %s" "$VERSION_ID" >&2
-                            printf "Supported versions: 22.04, 24.04" >&2
+                            printf "Supported versions: 22.04, 24.04, 26.04" >&2
                             printf "Use --os to override if binaries from a similar version may work" >&2
                             exit 1
                             ;;
@@ -120,7 +121,7 @@ detect_os() {
                     ;;
                 *)
                     printf "Error: Unsupported Linux distribution: %s" "$ID" >&2
-                    printf "Supported distributions: ubuntu (22.04, 24.04), rhel (9.x)" >&2
+                    printf "Supported distributions: ubuntu (22.04, 24.04, 26.04), rhel (9.x)" >&2
                     printf "Use --os to override if binaries from a similar distribution may work" >&2
                     exit 1
                     ;;

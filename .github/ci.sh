@@ -318,6 +318,9 @@ cleanup_bins() {
 normalize_container_name() {
   ORIG_NAME="$1"
   case "$ORIG_NAME" in
+    "ubuntu:26.04")
+      echo "ubuntu-26.04"
+      ;;
     "ubuntu:24.04")
       echo "ubuntu-24.04"
       ;;

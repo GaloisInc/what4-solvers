@@ -161,11 +161,11 @@ jobs:
       fail-fast: false
       matrix:
         # the base runner OS - we use the latest ubuntu, both in x86 and arm64
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
-        # basic containers to use - ubuntu 22.04, ubuntu 24.04 and ubi9
+        os: [ubuntu-26.04, ubuntu-26.04-arm]
+        # basic containers to use - ubuntu 22.04, ubuntu 24.04, ubuntu 26.04, and ubi9
         # each will be built in both arm and x86 versions
         # if a new container is added, update the normalize_container_name() function in ci.sh
-        container: [ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
+        container: [ubuntu:26.04, ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
         solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
 
@@ -236,6 +236,10 @@ jobs:
       matrix:
         include:
           # Ubuntu packages
+          - os: ubuntu-26.04
+            arch: X64
+          - os: ubuntu-26.04
+            arch: ARM64
           - os: ubuntu-24.04
             arch: X64
           - os: ubuntu-24.04
@@ -366,7 +370,7 @@ jobs:
   # - changes to jobs or job instances don't require a mergify config update
   # - dependencies through `needs:` are validated, CI will fail if it's invalid
   mergify:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: [build-native, build-container]
     steps:
       - run: "true"

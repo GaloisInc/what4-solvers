@@ -23,6 +23,7 @@ Built for the following operating systems:
 * RedHat UBI9 (arm64 and x86-64)
 * Ubuntu 22.04 (arm64 and x86-64)
 * Ubuntu 24.04 (arm64 and x86-64)
+* Ubuntu 26.04 (arm64 and x86-64)
 * Windows Server 2022 (x86-64)
 
 All of the binary distributions are built from CI.
