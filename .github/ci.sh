@@ -111,10 +111,6 @@ build_bitwuzla() {
 
   DIR=repos/bitwuzla
   pushd "$DIR"
-  # Backport the changes from
-  # https://github.com/bitwuzla/bitwuzla/commit/d30ef4147eb2cbe21267702a1c0be60e01d353cd
-  # to make Bitwuzla build with GCC >=15
-  patch -p1 -i "$PATCHES/bitwuzla-gcc-15-fix.patch"
   ./configure.py --fpexp
   cd build
   ninja -j4
