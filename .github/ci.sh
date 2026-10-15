@@ -234,11 +234,7 @@ build_yices() {
   export LDFLAGS="-L$TOP/install-root/lib"
 
   pushd repos/cudd
-  case "$RUNNER_OS" in
-    Linux) autoreconf ;;
-    macOS) autoreconf ;;
-    Windows) autoconf ;;
-  esac
+  autoreconf
   # shellcheck disable=SC2086
   ./configure CFLAGS=-fPIC $CONFIGURE_FLAGS
   make -j4
