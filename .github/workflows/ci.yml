@@ -167,7 +167,7 @@ jobs:
         # if a new container is added, update the normalize_container_name() function in ci.sh
         #container: [ubuntu:26.04, ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
         container: [ubuntu:22.04]
-        solver: [z3-4.16.0]
+        solver: [z3-4.14.1]
         #solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
 
@@ -307,7 +307,7 @@ jobs:
       #     path: bin
       - uses: actions/download-artifact@v6
         with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.16.0-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.14.1-bin"
           path: bin
 
         # Make a copy of z3-<LATEST_Z3_VERSION> named z3 for ease of use.

@@ -290,6 +290,10 @@ build_z3-4.16.0() {
   build_z3 "4.16.0"
 }
 
+build_z3-4.14.1() {
+  build_z3 "4.14.1"
+}
+
 build_z3() {
   Z3_BIN="z3-$1"
   DIR="repos/$Z3_BIN"
