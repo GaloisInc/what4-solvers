@@ -25,3 +25,9 @@
 [submodule "repos/bitwuzla"]
 	path = repos/bitwuzla
 	url = https://github.com/bitwuzla/bitwuzla
+[submodule "repos/z3-4.16.0"]
+	path = repos/z3-4.16.0
+	url = git@github.com:Z3Prover/z3.git
+[submodule "repos/z3-4.14.1"]
+	path = repos/z3-4.14.1
+	url = git@github.com:Z3Prover/z3.git

@@ -286,11 +286,19 @@ build_z3-4.8.14() {
   build_z3 "4.8.14"
 }
 
+build_z3-4.16.0() {
+  build_z3 "4.16.0"
+}
+
+build_z3-4.14.1() {
+  build_z3 "4.14.1"
+}
+
 build_z3() {
   Z3_BIN="z3-$1"
   DIR="repos/$Z3_BIN"
   pushd "$DIR"
-  patch -p1 -i "$PATCHES/$Z3_BIN-gcc-15-fix.patch"
+  #patch -p1 -i "$PATCHES/$Z3_BIN-gcc-15-fix.patch"
   mkdir build
   cd build
   if $IS_WIN ; then
