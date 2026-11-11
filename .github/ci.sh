@@ -256,6 +256,9 @@ build_yices() {
 
   DIR=repos/yices2
   pushd "$DIR"
+  # Fix a signed-integer overflow bug that can cause incorrect results (see
+  # https://github.com/SRI-CSL/yices2/pull/656)
+  patch -p1 -i "$PATCHES/yices-fix-signed-overflow-ub.patch"
   autoconf
   if $IS_WIN; then
     # shellcheck disable=SC2086
