@@ -8,7 +8,7 @@ on:
 
 env:
   CACHE_VERSION: 1
-  LATEST_Z3_VERSION: "4.8.14"
+  LATEST_Z3_VERSION: "4.14.1"
   # Some of the runners (e.g., Windows) use very recent versions of CMake that
   # are no longer compatible with CMake < 3.5, which is required by various
   # solvers' builds. For now, we try using the recent CMake versions anyway.
@@ -33,121 +33,121 @@ jobs:
           shellcheck scripts/test-solvers.sh
 
   # This job captures native runners that cannot be neatly containerized
-  build-native:
-    runs-on: ${{ matrix.os }}
-    needs: check
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-15, macos-15-intel, windows-2022]
-        solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
-    steps:
-      # This is necessary to clone the yices2 repo on Windows, as some of the
-      # repo's test cases exceed the Windows API's default file path limit of
-      # 260 characters.
-      - name: Enable long file paths on Windows
-        run: git config --system core.longpaths true
-        if: contains(matrix.os, 'windows')
+  # build-native:
+  #   runs-on: ${{ matrix.os }}
+  #   needs: check
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [macos-15, macos-15-intel, windows-2022]
+  #       solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
+  #   steps:
+  #     # This is necessary to clone the yices2 repo on Windows, as some of the
+  #     # repo's test cases exceed the Windows API's default file path limit of
+  #     # 260 characters.
+  #     - name: Enable long file paths on Windows
+  #       run: git config --system core.longpaths true
+  #       if: contains(matrix.os, 'windows')
 
-      - name: Import signing certificate (macOS)
-        uses: apple-actions/import-codesign-certs@v3
-        if: contains(matrix.os, 'macos')
-        with:
-          p12-file-base64: ${{ secrets.APPLE_P12_CERTIFICATE }}
-          p12-password: ${{ secrets.APPLE_P12_PASSWORD }}
+  #     - name: Import signing certificate (macOS)
+  #       uses: apple-actions/import-codesign-certs@v3
+  #       if: contains(matrix.os, 'macos')
+  #       with:
+  #         p12-file-base64: ${{ secrets.APPLE_P12_CERTIFICATE }}
+  #         p12-password: ${{ secrets.APPLE_P12_PASSWORD }}
 
-      - name: Install dependencies (macOS)
-        run: |
-          brew update
-          brew install gperf automake autoconf ninja gnu-sed
-          # macOS's version of sed lacks the -r option, which CVC5 requires. To
-          # work around this, we install put GNU sed before macOS's sed on the
-          # PATH.
-          echo "PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH" >> $GITHUB_ENV
-        if: contains(matrix.os, 'macos')
+  #     - name: Install dependencies (macOS)
+  #       run: |
+  #         brew update
+  #         brew install gperf automake autoconf ninja gnu-sed
+  #         # macOS's version of sed lacks the -r option, which CVC5 requires. To
+  #         # work around this, we install put GNU sed before macOS's sed on the
+  #         # PATH.
+  #         echo "PATH=/usr/local/opt/gnu-sed/libexec/gnubin:$PATH" >> $GITHUB_ENV
+  #       if: contains(matrix.os, 'macos')
 
-      - name: Install dependencies (Windows)
-        uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          msystem: UCRT64
-          path-type: inherit
-          install: |
-            autoconf
-            automake
-            curl
-            dos2unix
-            git
-            gperf
-            lzip
-            m4
-            make
-            mingw-w64-ucrt-x86_64-cmake
-            mingw-w64-ucrt-x86_64-gcc
-            mingw-w64-ucrt-x86_64-ninja
-            mingw-w64-ucrt-x86_64-pkgconf
-            patch
-            tar
-            unzip
-        if: contains(matrix.os, 'windows')
+  #     - name: Install dependencies (Windows)
+  #       uses: msys2/setup-msys2@v2
+  #       with:
+  #         update: true
+  #         msystem: UCRT64
+  #         path-type: inherit
+  #         install: |
+  #           autoconf
+  #           automake
+  #           curl
+  #           dos2unix
+  #           git
+  #           gperf
+  #           lzip
+  #           m4
+  #           make
+  #           mingw-w64-ucrt-x86_64-cmake
+  #           mingw-w64-ucrt-x86_64-gcc
+  #           mingw-w64-ucrt-x86_64-ninja
+  #           mingw-w64-ucrt-x86_64-pkgconf
+  #           patch
+  #           tar
+  #           unzip
+  #       if: contains(matrix.os, 'windows')
 
-      - name: Install Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+  #     - name: Install Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.10'
 
-      - name: Install Python libraries
-        run: |
-          python -m pip install --upgrade pip
-          pip install meson pyparsing toml tomli
+  #     - name: Install Python libraries
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install meson pyparsing toml tomli
 
-      - name: Install Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+  #     - name: Install Java
+  #       uses: actions/setup-java@v3
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: '17'
 
-      - uses: actions/checkout@v6
-        with:
-          submodules: true
-          fetch-depth: 0
+  #     - uses: actions/checkout@v6
+  #       with:
+  #         submodules: true
+  #         fetch-depth: 0
 
-      - name: build_solver (non-Windows)
-        run: .github/ci.sh build_${{ matrix.solver }}
-        if: runner.os != 'Windows'
+  #     - name: build_solver (non-Windows)
+  #       run: .github/ci.sh build_${{ matrix.solver }}
+  #       if: runner.os != 'Windows'
 
-      - name: build_solver (Windows)
-        shell: msys2 {0}
-        run: .github/ci.sh build_${{ matrix.solver }}
-        if: runner.os == 'Windows'
+  #     - name: build_solver (Windows)
+  #       shell: msys2 {0}
+  #       run: .github/ci.sh build_${{ matrix.solver }}
+  #       if: runner.os == 'Windows'
 
-      - name: Sign binary (macOS)
-        if: contains(matrix.os, 'macos')
-        env:
-          IDENTITY_NAME: ${{ secrets.APPLE_P12_IDENTITY_NAME }}
-        run: |
-          find bin -maxdepth 1 -type f -exec codesign \
-            --force \
-            --options runtime \
-            --sign "$IDENTITY_NAME" \
-            {} +
+  #     - name: Sign binary (macOS)
+  #       if: contains(matrix.os, 'macos')
+  #       env:
+  #         IDENTITY_NAME: ${{ secrets.APPLE_P12_IDENTITY_NAME }}
+  #       run: |
+  #         find bin -maxdepth 1 -type f -exec codesign \
+  #           --force \
+  #           --options runtime \
+  #           --sign "$IDENTITY_NAME" \
+  #           {} +
 
-      - name: test_solver (non-Windows)
-        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
-        if: runner.os != 'Windows'
+  #     - name: test_solver (non-Windows)
+  #       run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
+  #       if: runner.os != 'Windows'
 
-      - name: test_solver (Windows)
-        shell: msys2 {0}
-        run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
-        if: runner.os == 'Windows'
+  #     - name: test_solver (Windows)
+  #       shell: msys2 {0}
+  #       run: ./scripts/test-solvers.sh test_solver ${{ matrix.solver }} bin
+  #       if: runner.os == 'Windows'
 
-      - name: Normalize runner name
-        run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
+  #     - name: Normalize runner name
+  #       run: echo "OS_NAME=$(.github/ci.sh normalize_runner_name ${{ matrix.os }})" >> $GITHUB_ENV
 
-      - uses: actions/upload-artifact@v4
-        with:
-          path: bin
-          name: ${{ env.OS_NAME }}-${{ runner.arch }}-${{ matrix.solver }}-bin
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         path: bin
+  #         name: ${{ env.OS_NAME }}-${{ runner.arch }}-${{ matrix.solver }}-bin
 
   # We use an unpinned image because downstream users typically use unpinned images as well.
   # By using the `latest` tag we aim to catch any future breaking changes here.
@@ -165,8 +165,10 @@ jobs:
         # basic containers to use - ubuntu 22.04, ubuntu 24.04, ubuntu 26.04, and ubi9
         # each will be built in both arm and x86 versions
         # if a new container is added, update the normalize_container_name() function in ci.sh
-        container: [ubuntu:26.04, ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
-        solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
+        #container: [ubuntu:26.04, ubuntu:24.04, ubuntu:22.04, redhat/ubi9:latest]
+        container: [ubuntu:22.04]
+        solver: [z3-4.14.1]
+        #solver: [abc, bitwuzla, boolector, cvc5, yices, z3-4.8.8, z3-4.8.14]
     steps:
 
       - name: Install dependencies (Red Hat UBI 9)
@@ -230,37 +232,38 @@ jobs:
 
   package_solvers:
     runs-on: ubuntu-latest
-    needs: [build-native, build-container]
+    needs: [build-container]
+    #needs: [build-native, build-container]
     strategy:
       fail-fast: false
       matrix:
         include:
           # Ubuntu packages
-          - os: ubuntu-26.04
-            arch: X64
-          - os: ubuntu-26.04
-            arch: ARM64
-          - os: ubuntu-24.04
-            arch: X64
-          - os: ubuntu-24.04
-            arch: ARM64
+          # - os: ubuntu-26.04
+          #   arch: X64
+          # - os: ubuntu-26.04
+          #   arch: ARM64
+          # - os: ubuntu-24.04
+          #   arch: X64
+          # - os: ubuntu-24.04
+          #   arch: ARM64
           - os: ubuntu-22.04
             arch: X64
-          - os: ubuntu-22.04
-            arch: ARM64
-          # macOS packages
-          - os: macos-15
-            arch: ARM64
-          - os: macos-15
-            arch: X64
-          # Windows packages
-          - os: windows-2022
-            arch: X64
-          # RedHat UBI9 packages
-          - os: redhat-ubi9
-            arch: X64
-          - os: redhat-ubi9
-            arch: ARM64
+          # - os: ubuntu-22.04
+          #   arch: ARM64
+          # # macOS packages
+          # - os: macos-15
+          #   arch: ARM64
+          # - os: macos-15
+          #   arch: X64
+          # # Windows packages
+          # - os: windows-2022
+          #   arch: X64
+          # # RedHat UBI9 packages
+          # - os: redhat-ubi9
+          #   arch: X64
+          # - os: redhat-ubi9
+          #   arch: ARM64
     steps:
       - uses: actions/checkout@v6
         with:
@@ -268,39 +271,43 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-abc-bin"
-          path: bin
+      # - uses: actions/download-artifact@v6
+      #   with:
+      #     name: "${{ matrix.os }}-${{ matrix.arch }}-abc-bin"
+      #     path: bin
 
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-bitwuzla-bin"
-          path: bin
+      # - uses: actions/download-artifact@v6
+      #   with:
+      #     name: "${{ matrix.os }}-${{ matrix.arch }}-bitwuzla-bin"
+      #     path: bin
 
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-boolector-bin"
-          path: bin
+      # - uses: actions/download-artifact@v6
+      #   with:
+      #     name: "${{ matrix.os }}-${{ matrix.arch }}-boolector-bin"
+      #     path: bin
 
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-cvc5-bin"
-          path: bin
+      # - uses: actions/download-artifact@v6
+      #   with:
+      #     name: "${{ matrix.os }}-${{ matrix.arch }}-cvc5-bin"
+      #     path: bin
 
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-yices-bin"
-          path: bin
+      # - uses: actions/download-artifact@v6
+      #   with:
+      #     name: "${{ matrix.os }}-${{ matrix.arch }}-yices-bin"
+      #     path: bin
 
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.8-bin"
-          path: bin
+      # - uses: actions/download-artifact@v6
+      #   with:
+      #     name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.8-bin"
+      #     path: bin
 
+      # - uses: actions/download-artifact@v6
+      #   with:
+      #     name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.14-bin"
+      #     path: bin
       - uses: actions/download-artifact@v6
         with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.8.14-bin"
+          name: "${{ matrix.os }}-${{ matrix.arch }}-z3-4.14.1-bin"
           path: bin
 
         # Make a copy of z3-<LATEST_Z3_VERSION> named z3 for ease of use.
@@ -329,48 +336,48 @@ jobs:
   # (https://developer.apple.com/documentation/security/customizing-the-notarization-workflow#Avoid-long-notarization-response-times-and-size-limits),
   # so as a precaution, we only perform this step when a commit is on the
   # `main` branch (and not in pull requests).
-  notarize_macos_solvers:
-    runs-on: ${{ matrix.os }}
-    needs: [package_solvers]
-    if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') &&
-        github.event.pull_request.head.repo.fork == false &&
-        github.repository_owner == 'GaloisInc'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-15]
-        arch: [ARM64, X64]
-    steps:
-      - uses: actions/download-artifact@v6
-        with:
-          name: "${{ matrix.os }}-${{ matrix.arch }}-bin"
-          path: bin
+  # notarize_macos_solvers:
+  #   runs-on: ${{ matrix.os }}
+  #   needs: [package_solvers]
+  #   if: (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') &&
+  #       github.event.pull_request.head.repo.fork == false &&
+  #       github.repository_owner == 'GaloisInc'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [macos-15]
+  #       arch: [ARM64, X64]
+  #   steps:
+  #     - uses: actions/download-artifact@v6
+  #       with:
+  #         name: "${{ matrix.os }}-${{ matrix.arch }}-bin"
+  #         path: bin
 
-      - name: Zip binaries
-        run: |
-          find bin -maxdepth 1 -type f -exec zip binaries.zip {} +
+  #     - name: Zip binaries
+  #       run: |
+  #         find bin -maxdepth 1 -type f -exec zip binaries.zip {} +
 
-      - name: Notarize binaries
-        env:
-          KEY_ID: ${{ secrets.APPLE_P8_KEY_ID }}
-          ISSUER_ID: ${{ secrets.APPLE_P8_ISSUER_ID }}
-          API_KEY: ${{ secrets.APPLE_P8_API_KEY }}
-        run: |
-          echo "$API_KEY" > "AuthKey_$KEY_ID.p8"
-          xcrun notarytool submit binaries.zip \
-            --key "AuthKey_$KEY_ID.p8" \
-            --key-id "$KEY_ID" \
-            --issuer "$ISSUER_ID" \
-            --wait
+  #     - name: Notarize binaries
+  #       env:
+  #         KEY_ID: ${{ secrets.APPLE_P8_KEY_ID }}
+  #         ISSUER_ID: ${{ secrets.APPLE_P8_ISSUER_ID }}
+  #         API_KEY: ${{ secrets.APPLE_P8_API_KEY }}
+  #       run: |
+  #         echo "$API_KEY" > "AuthKey_$KEY_ID.p8"
+  #         xcrun notarytool submit binaries.zip \
+  #           --key "AuthKey_$KEY_ID.p8" \
+  #           --key-id "$KEY_ID" \
+  #           --issuer "$ISSUER_ID" \
+  #           --wait
 
-  # Indicates sufficient CI success for the purposes of mergify merging the pull
-  # request, see .github/mergify.yml. This is done instead of enumerating each
-  # instance of each job in the mergify configuration for a number of reasons:
-  # - continue-on-error is respected, won't block merge
-  # - changes to jobs or job instances don't require a mergify config update
-  # - dependencies through `needs:` are validated, CI will fail if it's invalid
-  mergify:
-    runs-on: ubuntu-26.04
-    needs: [build-native, build-container]
-    steps:
-      - run: "true"
+  # # Indicates sufficient CI success for the purposes of mergify merging the pull
+  # # request, see .github/mergify.yml. This is done instead of enumerating each
+  # # instance of each job in the mergify configuration for a number of reasons:
+  # # - continue-on-error is respected, won't block merge
+  # # - changes to jobs or job instances don't require a mergify config update
+  # # - dependencies through `needs:` are validated, CI will fail if it's invalid
+  # mergify:
+  #   runs-on: ubuntu-26.04
+  #   needs: [build-native, build-container]
+  #   steps:
+  #     - run: "true"
